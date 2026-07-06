@@ -24,6 +24,8 @@ A small, self-contained Markdown reader and editor that runs entirely as a singl
 | Bold / italic selection | `Ctrl+B` / `Ctrl+I` in the manuscript pane |
 | Switch theme | Sun/moon button, top-right |
 
+**Nothing is saved automatically.** Edits only live in the browser tab until you explicitly click **Save** (or **Save As**) — closing the tab, reloading, or navigating away without saving will lose your changes. The status bar's dot next to the filename turns solid/pulsing when there are unsaved changes, as a reminder to save.
+
 Editing directly in the rendered pane is supported for quick text fixes, but for anything beyond simple insert/delete, editing the Markdown source on the left is more reliable — a reminder to that effect is shown in the status bar.
 
 ## Browser support
