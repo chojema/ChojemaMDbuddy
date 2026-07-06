@@ -1,0 +1,1045 @@
+<title>MD·Buddy — Markdown Reader &amp; Editor</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  :root {
+    --bg: #f2e9d8;
+    --bg-elevated: #eadfc4;
+    --bg-well: #e8ddc3;
+    --editor-bg: #ffffff;
+    --preview-bg: #faf5e9;
+    --ink: #2a2118;
+    --ink-soft: #6b5d47;
+    --ink-faint: #9c8d70;
+    --rule: #d3c19c;
+    --rule-strong: #b8a37a;
+    --accent: #a83e26;
+    --accent-ink: #fdf3e7;
+    --accent-2: #4b6a4f;
+    --code-bg: #e6d9b8;
+    --shadow-1: rgba(50, 35, 15, 0.16);
+    --shadow-2: rgba(50, 35, 15, 0.28);
+    --key-top: #f8f0dd;
+    --key-edge: #c9b78e;
+    --scrollbar: #c9b686;
+    --font-display: Palatino, "Palatino Linotype", "Iowan Old Style", "Book Antiqua", Georgia, serif;
+    --font-body: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --font-mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", ui-monospace, Menlo, monospace;
+    color-scheme: light;
+  }
+
+  :root.ink {
+    --bg: #17130f;
+    --bg-elevated: #1e1811;
+    --bg-well: #221b13;
+    --editor-bg: var(--bg);
+    --preview-bg: var(--bg);
+    --ink: #ecdfc3;
+    --ink-soft: #ad9c78;
+    --ink-faint: #6f6249;
+    --rule: #3a2f21;
+    --rule-strong: #4d3f2b;
+    --accent: #e0784e;
+    --accent-ink: #1a1006;
+    --accent-2: #86b18a;
+    --code-bg: #241c13;
+    --shadow-1: rgba(0, 0, 0, 0.35);
+    --shadow-2: rgba(0, 0, 0, 0.55);
+    --key-top: #241d15;
+    --key-edge: #100c07;
+    --scrollbar: #4d3f2b;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+    mix-blend-mode: var(--grain-blend, multiply);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  :root.ink body::before { --grain-blend: screen; opacity: 0.6; }
+
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 8px; border: 3px solid var(--bg); }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--rule);
+    z-index: 2;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: var(--font-display);
+    font-size: 19px;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .brand .mark { color: var(--accent); font-size: 22px; transform: translateY(1px); }
+  .brand .sub { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: 0.14em; text-transform: uppercase; }
+
+  .divider-v { width: 1px; align-self: stretch; background: var(--rule); margin: 2px 0; }
+
+  .keys { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .key {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--key-top);
+    border: 1px solid var(--key-edge);
+    border-bottom: 3px solid var(--key-edge);
+    border-radius: 5px;
+    padding: 7px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 0 var(--shadow-1);
+    transition: transform 0.06s ease, box-shadow 0.06s ease, border-bottom-width 0.06s ease;
+  }
+  .key:hover { color: var(--accent); }
+  .key:active, .key.pressed {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+  }
+  .key svg { width: 13px; height: 13px; opacity: 0.85; }
+  .key.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .key.primary:hover { color: var(--accent-ink); filter: brightness(1.08); }
+
+  .spacer { flex: 1; }
+
+  .credit {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .credit:hover { color: var(--accent); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 3px; }
+
+  .theme-toggle {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--key-top);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex: none;
+  }
+  .theme-toggle svg { width: 16px; height: 16px; stroke: var(--ink); }
+
+  /* ---------- Main ---------- */
+  .stage {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    position: relative;
+  }
+  .stage.drag-over::before {
+    content: "Drop to open";
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    opacity: 0.94;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 28px;
+    color: var(--accent);
+    outline: 3px dashed var(--accent);
+    outline-offset: -14px;
+    pointer-events: none;
+  }
+
+  .pane {
+    display: flex;
+    flex: 1 1 50%;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .pane-head {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 9px 20px 8px;
+    border-bottom: 1px dashed var(--rule);
+    flex: none;
+  }
+  #editPane .pane-head { background: var(--editor-bg); }
+  #previewPane .pane-head { background: var(--preview-bg); }
+
+  #editor {
+    flex: 1;
+    resize: none;
+    border: none;
+    outline: none;
+    background: var(--editor-bg);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 14.5px;
+    line-height: 1.7;
+    padding: 22px 26px 60px;
+    tab-size: 2;
+    caret-color: var(--accent);
+  }
+  #editor::placeholder { color: var(--ink-faint); }
+
+  .divider {
+    flex: none;
+    width: 13px;
+    margin: 0 -7px;
+    cursor: col-resize;
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .divider::after {
+    content: "";
+    width: 1px;
+    height: 100%;
+    background: var(--rule-strong);
+  }
+  .divider .grip {
+    position: absolute;
+    width: 5px; height: 34px;
+    border-radius: 3px;
+    background: var(--rule-strong);
+  }
+
+  #preview {
+    flex: 1;
+    overflow: auto;
+    padding: 30px 40px 80px;
+    background: var(--preview-bg);
+  }
+  #preview .page {
+    max-width: 68ch;
+    min-height: 100%;
+    margin: 0 auto;
+    font-family: var(--font-body);
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--ink);
+    outline: none;
+    caret-color: var(--accent);
+    cursor: text;
+  }
+  #preview .page:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-faint);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  #preview .page h1, #preview .page h2, #preview .page h3,
+  #preview .page h4, #preview .page h5, #preview .page h6 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    line-height: 1.25;
+    margin: 1.4em 0 0.5em;
+  }
+  #preview .page h1 { font-size: 2em; border-bottom: 1px solid var(--rule); padding-bottom: 0.25em; }
+  #preview .page h2 { font-size: 1.55em; border-bottom: 1px solid var(--rule); padding-bottom: 0.2em; }
+  #preview .page h3 { font-size: 1.25em; color: var(--accent); }
+  #preview .page h1:first-child, #preview .page h2:first-child, #preview .page h3:first-child { margin-top: 0; }
+  #preview .page p { margin: 0.9em 0; }
+  #preview .page a { color: var(--accent); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 3px; }
+  #preview .page strong { color: var(--ink); }
+  #preview .page em { color: var(--ink-soft); }
+  #preview .page blockquote {
+    margin: 1em 0;
+    padding: 0.2em 1.2em;
+    border-left: 3px solid var(--accent);
+    background: var(--bg-well);
+    color: var(--ink-soft);
+    border-radius: 0 4px 4px 0;
+  }
+  #preview .page blockquote p { margin: 0.6em 0; }
+  #preview .page ul, #preview .page ol { padding-left: 1.5em; margin: 0.8em 0; }
+  #preview .page li { margin: 0.3em 0; }
+  #preview .page hr { border: none; border-top: 1px solid var(--rule-strong); margin: 2em 0; }
+  #preview .page code {
+    font-family: var(--font-mono);
+    background: var(--code-bg);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+  #preview .page pre.md-code {
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow: auto;
+    margin: 1.1em 0;
+    box-shadow: inset 0 1px 3px var(--shadow-1);
+  }
+  #preview .page pre.md-code code { background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+  #preview .page img { max-width: 100%; border-radius: 6px; }
+  #preview .page table.md-table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: 0.95em; }
+  #preview .page table.md-table th, #preview .page table.md-table td {
+    border: 1px solid var(--rule); padding: 8px 12px; text-align: left;
+  }
+  #preview .page table.md-table th { background: var(--bg-well); font-family: var(--font-mono); font-size: 0.78em; letter-spacing: 0.06em; text-transform: uppercase; }
+  #preview .page del { color: var(--ink-faint); }
+
+  /* ---------- Status bar ---------- */
+  .statusbar {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 6px 18px;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+  .statusbar .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent-2);
+    display: inline-block;
+    margin-right: 6px;
+    transform: translateY(1px);
+  }
+  .statusbar .dot.dirty { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .statusbar .grow { flex: 1; }
+  .statusbar .filename { color: var(--ink); }
+  .statusbar .hint {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--ink-faint);
+    font-style: italic;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  input[type=file] { display: none; }
+
+  @media (max-width: 720px) {
+    .brand .sub { display: none; }
+    .key span.label { display: none; }
+    .credit { display: none; }
+  }
+  @media (max-width: 900px) {
+    .statusbar .hint { display: none; }
+  }
+</style>
+
+<div class="topbar">
+  <div class="brand"><span class="mark">⁂</span>MD·Buddy<span class="sub">plain-text companion</span></div>
+  <div class="divider-v"></div>
+  <div class="keys">
+    <button class="key" id="btnNew" title="New (Ctrl+Alt+N)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15h6"/></svg>
+      <span class="label">New</span>
+    </button>
+    <button class="key" id="btnOpen" title="Open (Ctrl+O)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+      <span class="label">Open</span>
+    </button>
+    <button class="key primary" id="btnSave" title="Save (Ctrl+S)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h11l5 5v13H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/></svg>
+      <span class="label">Save</span>
+    </button>
+    <button class="key" id="btnSaveAs" title="Save As (Ctrl+Shift+S)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h11l5 5v13H5z"/><path d="M8 3v6h6V3"/><path d="M9 17.5 11 21l4-5"/></svg>
+      <span class="label">Save As</span>
+    </button>
+  </div>
+
+  <div class="spacer"></div>
+
+  <a class="credit" href="https://cantips.com" target="_blank" rel="noopener noreferrer">Chulwoo Park, <span id="creditYear"></span></a>
+
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+  </button>
+</div>
+
+<div class="stage" id="stage">
+  <div class="pane" id="editPane">
+    <div class="pane-head">Manuscript</div>
+    <textarea id="editor" spellcheck="false" placeholder="# Start writing…
+
+Open a .md file, or just type here."></textarea>
+  </div>
+  <div class="divider" id="divider"><div class="grip"></div></div>
+  <div class="pane" id="previewPane">
+    <div class="pane-head">Rendered</div>
+    <div id="preview"><div class="page" id="previewPage" contenteditable="true" spellcheck="false" data-placeholder="Nothing to read yet — start writing in the manuscript pane, or type directly here."></div></div>
+  </div>
+</div>
+
+<div class="statusbar">
+  <span><span class="dot" id="dirtyDot"></span><span class="filename" id="filenameLabel">untitled.md</span></span>
+  <span id="wordCount">0 words</span>
+  <span id="charCount">0 chars</span>
+  <span class="hint">Both panes are editable — for the safest results, prefer the manuscript pane.</span>
+  <span class="grow"></span>
+  <span id="fsSupport"></span>
+</div>
+
+<input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" />
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- Markdown renderer (hand-written, dependency-free) ---------------- */
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  const escapeAttr = escapeHtml;
+
+  function splitTableRow(row) {
+    let r = row.trim();
+    if (r.startsWith("|")) r = r.slice(1);
+    if (r.endsWith("|")) r = r.slice(0, -1);
+    return r.split(/(?<!\\)\|/).map((c) => c.replace(/\\\|/g, "|"));
+  }
+
+  function renderInline(text) {
+    const escStore = [];
+    const raw = text.replace(/\\([\\`*_{}\[\]()#+.!>~-])/g, (m, ch) => {
+      escStore.push(ch);
+      return "X" + (escStore.length - 1) + "";
+    });
+
+    const codeStore = [];
+    let s = raw.replace(/`([^`]+?)`/g, (m, code) => {
+      codeStore.push(escapeHtml(code));
+      return "C" + (codeStore.length - 1) + "";
+    });
+    s = escapeHtml(s);
+
+    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
+      (m, alt, url, title) => `<img src="${escapeAttr(url)}" alt="${escapeAttr(alt)}"${title ? ` title="${escapeAttr(title)}"` : ""}>`);
+
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
+      (m, txt, url, title) => `<a href="${escapeAttr(url)}"${title ? ` title="${escapeAttr(title)}"` : ""} target="_blank" rel="noopener noreferrer">${txt}</a>`);
+
+    s = s.replace(/&lt;((?:https?|mailto):[^&\s]+)&gt;/g,
+      (m, url) => `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+
+    s = s.replace(/(\*\*\*|___)(.+?)\1/g, "<strong><em>$2</em></strong>");
+    s = s.replace(/(\*\*|__)(.+?)\1/g, "<strong>$2</strong>");
+    s = s.replace(/(^|[^\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)/g, "$1<em>$2</em>");
+    s = s.replace(/\b_(?!\s)(.+?)(?<!\s)_\b/g, "<em>$1</em>");
+    s = s.replace(/~~(.+?)~~/g, "<del>$1</del>");
+
+    s = s.replace(/ {2,}\n/g, "<br>\n").replace(/\\\n/g, "<br>\n");
+
+    s = s.replace(/C(\d+)/g, (m, idx) => `<code>${codeStore[Number(idx)]}</code>`);
+    s = s.replace(/X(\d+)/g, (m, idx) => escapeHtml(escStore[Number(idx)]));
+    return s;
+  }
+
+  function dedent(text) {
+    const lines = text.split("\n");
+    const indents = lines.filter((l) => l.trim().length).map((l) => l.match(/^\s*/)[0].length);
+    const indent = indents.length ? Math.min(...indents) : 0;
+    return lines.map((l) => l.slice(indent)).join("\n");
+  }
+
+  function renderListItemContent(text) {
+    const lines = text.split("\n");
+    const first = lines[0];
+    const rest = lines.slice(1).join("\n");
+    let html = renderInline(first);
+    if (rest.trim()) html += renderMarkdown(dedent(rest));
+    return html;
+  }
+
+  function renderMarkdown(src) {
+    const lines = src.replace(/\r\n?/g, "\n").split("\n");
+    const n = lines.length;
+    const out = [];
+    let i = 0;
+    const isBlank = (l) => /^\s*$/.test(l);
+
+    while (i < n) {
+      const line = lines[i];
+      if (isBlank(line)) { i++; continue; }
+
+      const fence = line.match(/^ {0,3}(`{3,}|~{3,})\s*([\w+-]*)\s*$/);
+      if (fence) {
+        const fenceChar = fence[1][0], fenceLen = fence[1].length, lang = fence[2];
+        i++;
+        const codeLines = [];
+        const closeRe = new RegExp("^ {0,3}\\" + fenceChar + "{" + fenceLen + ",}\\s*$");
+        while (i < n) {
+          if (closeRe.test(lines[i])) { i++; break; }
+          codeLines.push(lines[i]); i++;
+        }
+        out.push(`<pre class="md-code"><code${lang ? ` class="lang-${escapeAttr(lang)}"` : ""}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        continue;
+      }
+
+      const h = line.match(/^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$/);
+      if (h) {
+        out.push(`<h${h[1].length}>${renderInline(h[2])}</h${h[1].length}>`);
+        i++; continue;
+      }
+
+      if (/^ {0,3}((-\s*){3,}|(\*\s*){3,}|(_\s*){3,})$/.test(line)) {
+        out.push("<hr>"); i++; continue;
+      }
+
+      if (/^ {0,3}>/.test(line)) {
+        const bq = [];
+        while (i < n && /^ {0,3}>/.test(lines[i])) {
+          bq.push(lines[i].replace(/^ {0,3}>\s?/, ""));
+          i++;
+        }
+        out.push(`<blockquote>${renderMarkdown(bq.join("\n"))}</blockquote>`);
+        continue;
+      }
+
+      if (/\|/.test(line) && i + 1 < n && /^ {0,3}\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/.test(lines[i + 1])) {
+        const headerCells = splitTableRow(line);
+        const aligns = splitTableRow(lines[i + 1]).map((c) => {
+          const t = c.trim();
+          if (/^:-+:$/.test(t)) return "center";
+          if (/^-+:$/.test(t)) return "right";
+          if (/^:-+$/.test(t)) return "left";
+          return "";
+        });
+        i += 2;
+        const rows = [];
+        while (i < n && !isBlank(lines[i]) && /\|/.test(lines[i])) { rows.push(splitTableRow(lines[i])); i++; }
+        let t = '<table class="md-table"><thead><tr>';
+        headerCells.forEach((c, idx) => t += `<th${aligns[idx] ? ` style="text-align:${aligns[idx]}"` : ""}>${renderInline(c.trim())}</th>`);
+        t += "</tr></thead><tbody>";
+        rows.forEach((r) => {
+          t += "<tr>";
+          r.forEach((c, idx) => t += `<td${aligns[idx] ? ` style="text-align:${aligns[idx]}"` : ""}>${renderInline(c.trim())}</td>`);
+          t += "</tr>";
+        });
+        t += "</tbody></table>";
+        out.push(t);
+        continue;
+      }
+
+      const listMatch = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+      if (listMatch) {
+        const ordered = /\d/.test(listMatch[2]);
+        const baseIndent = listMatch[1].length;
+        const items = [];
+        while (i < n) {
+          const m = lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+          if (!m || m[1].length !== baseIndent) break;
+          const itemLines = [m[3]];
+          i++;
+          while (i < n && !isBlank(lines[i]) && !lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/)) {
+            itemLines.push(lines[i].replace(/^ {0,4}/, "")); i++;
+          }
+          while (i < n) {
+            const nm = lines[i].match(/^(\s+)([-*+]|\d+[.)])\s+(.*)$/);
+            if (nm && nm[1].length > baseIndent) {
+              itemLines.push(lines[i]); i++;
+              while (i < n && !isBlank(lines[i])) { itemLines.push(lines[i]); i++; }
+            } else break;
+          }
+          items.push(itemLines.join("\n"));
+        }
+        const tag = ordered ? "ol" : "ul";
+        out.push(`<${tag}>${items.map((it) => `<li>${renderListItemContent(it)}</li>`).join("")}</${tag}>`);
+        continue;
+      }
+
+      const paraLines = [line];
+      i++;
+      while (i < n && !isBlank(lines[i]) &&
+             !/^ {0,3}#{1,6}\s+/.test(lines[i]) &&
+             !/^ {0,3}>/.test(lines[i]) &&
+             !/^ {0,3}(`{3,}|~{3,})/.test(lines[i]) &&
+             !/^(\s*)([-*+]|\d+[.)])\s+/.test(lines[i]) &&
+             !/^ {0,3}((-\s*){3,}|(\*\s*){3,}|(_\s*){3,})$/.test(lines[i])) {
+        paraLines.push(lines[i]); i++;
+      }
+      out.push(`<p>${renderInline(paraLines.join("\n"))}</p>`);
+    }
+    return out.join("\n");
+  }
+
+  /* ---------------- Markdown serializer (reverse of the renderer above, for the editable preview) ---------------- */
+
+  function inlineToMd(node) {
+    let out = "";
+    node.childNodes.forEach((child) => { out += inlineNodeToMd(child); });
+    return out;
+  }
+
+  function inlineNodeToMd(node) {
+    if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+    if (node.nodeType !== Node.ELEMENT_NODE) return "";
+    const tag = node.tagName.toLowerCase();
+    if (tag === "strong" || tag === "b") return `**${inlineToMd(node)}**`;
+    if (tag === "em" || tag === "i") return `*${inlineToMd(node)}*`;
+    if (tag === "del" || tag === "s") return `~~${inlineToMd(node)}~~`;
+    if (tag === "code") return `\`${node.textContent}\``;
+    if (tag === "a") return `[${inlineToMd(node)}](${node.getAttribute("href") || ""})`;
+    if (tag === "img") return `![${node.getAttribute("alt") || ""}](${node.getAttribute("src") || ""})`;
+    if (tag === "br") return "\n";
+    if (tag === "ul" || tag === "ol") return "\n" + blockNodeToMd(node) + "\n";
+    return inlineToMd(node);
+  }
+
+  function blockToMd(node) {
+    const parts = [];
+    node.childNodes.forEach((child) => {
+      const md = blockNodeToMd(child);
+      if (md !== null && md.trim().length) parts.push(md);
+    });
+    return parts.join("\n\n");
+  }
+
+  function blockNodeToMd(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent.trim() ? node.textContent : null;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+    const tag = node.tagName.toLowerCase();
+    if (/^h[1-6]$/.test(tag)) return "#".repeat(Number(tag[1])) + " " + inlineToMd(node).trim();
+    if (tag === "hr") return "---";
+    if (tag === "blockquote") {
+      return blockToMd(node).split("\n").map((l) => (l ? "> " + l : ">")).join("\n");
+    }
+    if (tag === "pre") {
+      const codeEl = node.querySelector("code");
+      const text = (codeEl || node).textContent.replace(/\n$/, "");
+      const langMatch = codeEl && codeEl.className.match(/lang-(\S+)/);
+      return "```" + (langMatch ? langMatch[1] : "") + "\n" + text + "\n```";
+    }
+    if (tag === "ul" || tag === "ol") {
+      const items = Array.from(node.children).filter((c) => c.tagName === "LI");
+      return items.map((li, idx) => {
+        const nested = li.querySelector(":scope > ul, :scope > ol");
+        let text;
+        if (nested) {
+          const clone = li.cloneNode(true);
+          clone.querySelector(":scope > ul, :scope > ol").remove();
+          const nestedMd = blockNodeToMd(nested).split("\n").map((l) => "  " + l).join("\n");
+          text = inlineToMd(clone).trim() + "\n" + nestedMd;
+        } else {
+          text = inlineToMd(li).trim();
+        }
+        return (tag === "ol" ? `${idx + 1}. ` : "- ") + text;
+      }).join("\n");
+    }
+    if (tag === "table") {
+      const headerCells = Array.from(node.querySelectorAll("thead th")).map((th) => inlineToMd(th).trim());
+      const bodyRows = Array.from(node.querySelectorAll("tbody tr")).map((tr) => Array.from(tr.children).map((td) => inlineToMd(td).trim()));
+      let out = `| ${headerCells.join(" | ")} |\n| ${headerCells.map(() => "---").join(" | ")} |`;
+      bodyRows.forEach((row) => { out += `\n| ${row.join(" | ")} |`; });
+      return out;
+    }
+    return inlineToMd(node).trim();
+  }
+
+  function htmlToMarkdown(root) {
+    return blockToMd(root);
+  }
+
+  /* ---------------- App state ---------------- */
+
+  const editor = document.getElementById("editor");
+  const previewPage = document.getElementById("previewPage");
+  const filenameLabel = document.getElementById("filenameLabel");
+  const dirtyDot = document.getElementById("dirtyDot");
+  const wordCount = document.getElementById("wordCount");
+  const charCount = document.getElementById("charCount");
+  const fsSupport = document.getElementById("fsSupport");
+
+  const supportsFS = "showOpenFilePicker" in window;
+  fsSupport.textContent = supportsFS ? "native file access" : "download-based save";
+
+  let fileHandle = null;
+  let fileName = "untitled.md";
+  let dirty = false;
+  let savedContent = "";
+
+  const WELCOME = `# Welcome to MD·Buddy
+
+A small, self-contained companion for **reading** and **editing** Markdown files —
+no build step, no server, no external services.
+
+## What it can do
+
+- Open a \`.md\` file from disk and edit it right here
+- Both panes are editable: type markdown on the left, or edit the rendered text directly on the right — they stay in sync
+- Save back to the same file, or *Save As* a new one
+
+## Try it
+
+1. Click **Open** to pick a real file, or just keep typing in this pane.
+2. Use \`Ctrl+S\` to save, \`Ctrl+O\` to open, \`Ctrl+B\` / \`Ctrl+I\` to wrap selected text.
+
+> Everything you type lives only in this tab until you save it.
+
+\`\`\`js
+// inline code and fenced code blocks both render
+const buddy = "markdown";
+\`\`\`
+
+| Feature | Status |
+| --- | --- |
+| Tables | done |
+| Lists | done |
+| Links | done |
+
+## A couple more examples
+
+Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
+
+[![CanTips](https://yt3.googleusercontent.com/n8xeDS0L0-qBJcO8F0Z9vEAi7hU-ZTjSzSJS22UVVB_gyFZeE2WlIug8JL6ntC97ubW2AlaKPA=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj)](https://www.youtube.com/@cantips)
+`;
+
+  function setContent(text, name) {
+    editor.value = text;
+    fileName = name || fileName;
+    filenameLabel.textContent = fileName;
+    savedContent = text;
+    dirty = false;
+    updateAll();
+  }
+
+  function markDirty() {
+    dirty = editor.value !== savedContent;
+    dirtyDot.classList.toggle("dirty", dirty);
+  }
+
+  function updateStats() {
+    const text = editor.value;
+    const words = text.trim().length ? text.trim().split(/\s+/).length : 0;
+    wordCount.textContent = words + (words === 1 ? " word" : " words");
+    charCount.textContent = text.length + (text.length === 1 ? " char" : " chars");
+  }
+
+  function updatePreview() {
+    const text = editor.value;
+    previewPage.innerHTML = text.trim() ? renderMarkdown(text) : "";
+  }
+
+  function updateAll() {
+    updateStats();
+    updatePreview();
+    markDirty();
+  }
+
+  editor.addEventListener("input", updateAll);
+
+  /* ---- Editing the rendered pane writes straight back into the markdown source ---- */
+  previewPage.addEventListener("input", () => {
+    editor.value = htmlToMarkdown(previewPage);
+    updateStats();
+    markDirty();
+  });
+
+  /* ---- Links (and linked images) still open on click even though the pane is editable ---- */
+  previewPage.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (a && a.href) {
+      e.preventDefault();
+      window.open(a.href, "_blank", "noopener,noreferrer");
+    }
+  });
+
+  /* ---- Tab key inserts spaces instead of moving focus ---- */
+  editor.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = editor.selectionStart, end = editor.selectionEnd;
+      editor.value = editor.value.slice(0, start) + "  " + editor.value.slice(end);
+      editor.selectionStart = editor.selectionEnd = start + 2;
+      updateAll();
+    }
+  });
+
+  function wrapSelection(marker) {
+    const start = editor.selectionStart, end = editor.selectionEnd;
+    const val = editor.value;
+    editor.value = val.slice(0, start) + marker + val.slice(start, end) + marker + val.slice(end);
+    editor.selectionStart = start + marker.length;
+    editor.selectionEnd = end + marker.length;
+    editor.focus();
+    updateAll();
+  }
+
+  /* ---------------- File operations ---------------- */
+
+  function confirmDiscard() {
+    return !dirty || confirm("Discard unsaved changes?");
+  }
+
+  const fileTypes = [{ description: "Markdown", accept: { "text/markdown": [".md", ".markdown", ".txt"] } }];
+
+  async function doOpen() {
+    if (!confirmDiscard()) return;
+    if (supportsFS) {
+      try {
+        const [handle] = await window.showOpenFilePicker({ types: fileTypes });
+        fileHandle = handle;
+        const file = await handle.getFile();
+        setContent(await file.text(), file.name);
+      } catch (e) {
+        if (e && e.name !== "AbortError") alert("Could not open file: " + e.message);
+      }
+    } else {
+      document.getElementById("fileInput").click();
+    }
+  }
+
+  document.getElementById("fileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    fileHandle = null;
+    const reader = new FileReader();
+    reader.onload = () => setContent(reader.result, file.name);
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  function downloadFallback() {
+    const blob = new Blob([editor.value], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName || "untitled.md";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    savedContent = editor.value;
+    markDirty();
+  }
+
+  async function doSave(forceSaveAs) {
+    if (supportsFS && fileHandle && !forceSaveAs) {
+      try {
+        const writable = await fileHandle.createWritable();
+        await writable.write(editor.value);
+        await writable.close();
+        savedContent = editor.value;
+        markDirty();
+      } catch (e) {
+        alert("Could not save file: " + e.message);
+      }
+      return;
+    }
+    if (supportsFS) {
+      try {
+        const handle = await window.showSaveFilePicker({ suggestedName: fileName, types: fileTypes });
+        fileHandle = handle;
+        const writable = await handle.createWritable();
+        await writable.write(editor.value);
+        await writable.close();
+        fileName = handle.name;
+        filenameLabel.textContent = fileName;
+        savedContent = editor.value;
+        markDirty();
+      } catch (e) {
+        if (e && e.name !== "AbortError") alert("Could not save file: " + e.message);
+      }
+      return;
+    }
+    downloadFallback();
+  }
+
+  function doNew() {
+    if (!confirmDiscard()) return;
+    fileHandle = null;
+    setContent("", "untitled.md");
+    editor.focus();
+  }
+
+  document.getElementById("btnNew").addEventListener("click", doNew);
+  document.getElementById("btnOpen").addEventListener("click", doOpen);
+  document.getElementById("btnSave").addEventListener("click", () => doSave(false));
+  document.getElementById("btnSaveAs").addEventListener("click", () => doSave(true));
+
+  /* ---- Drag a file onto the window to open it ---- */
+  function hasFiles(e) {
+    return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes("Files");
+  }
+
+  let dragCounter = 0;
+  window.addEventListener("dragenter", (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragCounter++;
+    document.getElementById("stage").classList.add("drag-over");
+  });
+  window.addEventListener("dragover", (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+  });
+  window.addEventListener("dragleave", () => {
+    dragCounter = Math.max(0, dragCounter - 1);
+    if (dragCounter === 0) document.getElementById("stage").classList.remove("drag-over");
+  });
+  window.addEventListener("drop", async (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragCounter = 0;
+    document.getElementById("stage").classList.remove("drag-over");
+
+    const files = e.dataTransfer.files;
+    if (!files || !files.length) return;
+    if (!confirmDiscard()) return;
+
+    const item = e.dataTransfer.items && e.dataTransfer.items[0];
+    if (supportsFS && item && item.getAsFileSystemHandle) {
+      try {
+        const handle = await item.getAsFileSystemHandle();
+        if (handle.kind === "file") {
+          fileHandle = handle;
+          const file = await handle.getFile();
+          setContent(await file.text(), file.name);
+          return;
+        }
+      } catch (err) {
+        // fall through to the plain file read below
+      }
+    }
+
+    fileHandle = null;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = () => setContent(reader.result, file.name);
+    reader.readAsText(file);
+  });
+
+  window.addEventListener("beforeunload", (e) => {
+    if (dirty) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      doSave(e.shiftKey);
+    } else if (mod && e.key.toLowerCase() === "o") {
+      e.preventDefault();
+      doOpen();
+    } else if (mod && e.altKey && e.key.toLowerCase() === "n") {
+      e.preventDefault();
+      doNew();
+    } else if (mod && document.activeElement === editor && e.key.toLowerCase() === "b") {
+      e.preventDefault();
+      wrapSelection("**");
+    } else if (mod && document.activeElement === editor && e.key.toLowerCase() === "i") {
+      e.preventDefault();
+      wrapSelection("*");
+    }
+  });
+
+  /* ---------------- Split layout (always on: manuscript left, rendered right) ---------------- */
+
+  const stage = document.getElementById("stage");
+  const editPane = document.getElementById("editPane");
+  const previewPane = document.getElementById("previewPane");
+  const divider = document.getElementById("divider");
+
+  let dragging = false;
+  divider.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    divider.setPointerCapture(e.pointerId);
+  });
+  divider.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const rect = stage.getBoundingClientRect();
+    const pct = Math.min(80, Math.max(20, ((e.clientX - rect.left) / rect.width) * 100));
+    editPane.style.flex = `0 0 ${pct}%`;
+    previewPane.style.flex = `1 1 ${100 - pct}%`;
+  });
+  divider.addEventListener("pointerup", (e) => {
+    dragging = false;
+    divider.releasePointerCapture(e.pointerId);
+  });
+
+  /* ---------------- Theme ---------------- */
+
+  const themeToggle = document.getElementById("themeToggle");
+  const themeIcon = document.getElementById("themeIcon");
+  const moonPath = '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/>';
+  const sunPath = '<circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>';
+
+  function applyTheme(mode) {
+    document.documentElement.classList.toggle("ink", mode === "ink");
+    themeIcon.innerHTML = mode === "ink" ? moonPath : sunPath;
+  }
+
+  let storedTheme = "paper";
+  try { storedTheme = localStorage.getItem("mdbuddy-theme") || "paper"; } catch (e) {}
+  applyTheme(storedTheme);
+
+  themeToggle.addEventListener("click", () => {
+    storedTheme = storedTheme === "ink" ? "paper" : "ink";
+    applyTheme(storedTheme);
+    try { localStorage.setItem("mdbuddy-theme", storedTheme); } catch (e) {}
+  });
+
+  /* ---------------- Init ---------------- */
+
+  document.getElementById("creditYear").textContent = new Date().getFullYear();
+  setContent(WELCOME, "untitled.md");
+})();
+</script>
