@@ -305,6 +305,8 @@
   #preview .page blockquote p { margin: 0.6em 0; }
   #preview .page ul, #preview .page ol { padding-left: 1.5em; margin: 0.8em 0; }
   #preview .page li { margin: 0.3em 0; }
+  #preview .page .md-outline { margin: 0.8em 0; }
+  #preview .page .md-outline-item { margin: 0.28em 0; }
   #preview .page hr { border: none; border-top: 1px solid var(--rule-strong); margin: 2em 0; }
   #preview .page code {
     font-family: var(--font-mono);
@@ -507,6 +509,10 @@ Open a .md file, or just type here."></textarea>
     return html;
   }
 
+  function isOutlineNumberLine(line) {
+    return /^ {0,3}\d+(?:\.\d+)+\.?\s+\S/.test(line);
+  }
+
   function renderMarkdown(src) {
     const lines = src.replace(/\r\n?/g, "\n").split("\n");
     const n = lines.length;
@@ -577,6 +583,16 @@ Open a .md file, or just type here."></textarea>
         continue;
       }
 
+      if (isOutlineNumberLine(line)) {
+        const outlineLines = [];
+        while (i < n && isOutlineNumberLine(lines[i])) {
+          outlineLines.push(lines[i].trim());
+          i++;
+        }
+        out.push(`<div class="md-outline">${outlineLines.map((l) => `<div class="md-outline-item">${renderInline(l)}</div>`).join("")}</div>`);
+        continue;
+      }
+
       const listMatch = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
       if (listMatch) {
         const ordered = /\d/.test(listMatch[2]);
@@ -611,6 +627,7 @@ Open a .md file, or just type here."></textarea>
              !/^ {0,3}>/.test(lines[i]) &&
              !/^ {0,3}(`{3,}|~{3,})/.test(lines[i]) &&
              !/^(\s*)([-*+]|\d+[.)])\s+/.test(lines[i]) &&
+             !isOutlineNumberLine(lines[i]) &&
              !/^ {0,3}((-\s*){3,}|(\*\s*){3,}|(_\s*){3,})$/.test(lines[i])) {
         paraLines.push(lines[i]); i++;
       }
@@ -667,6 +684,15 @@ Open a .md file, or just type here."></textarea>
       const text = (codeEl || node).textContent.replace(/\n$/, "");
       const langMatch = codeEl && codeEl.className.match(/lang-(\S+)/);
       return "```" + (langMatch ? langMatch[1] : "") + "\n" + text + "\n```";
+    }
+    if (tag === "div" && node.classList.contains("md-outline")) {
+      return Array.from(node.children)
+        .filter((c) => c.classList.contains("md-outline-item"))
+        .map((c) => inlineToMd(c).trim())
+        .join("\n");
+    }
+    if (tag === "div" && node.classList.contains("md-outline-item")) {
+      return inlineToMd(node).trim();
     }
     if (tag === "ul" || tag === "ol") {
       const items = Array.from(node.children).filter((c) => c.tagName === "LI");
