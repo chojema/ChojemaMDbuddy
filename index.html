@@ -36,6 +36,10 @@
     --key-top: #f8f0dd;
     --key-edge: #c9b78e;
     --scrollbar: #c9b686;
+    --hl-kw: #8a3a1f;
+    --hl-str: #4b6a4f;
+    --hl-com: #9c8d70;
+    --hl-num: #7a4e9c;
     --font-display: Palatino, "Palatino Linotype", "Iowan Old Style", "Book Antiqua", Georgia, serif;
     --font-body: Georgia, "Iowan Old Style", "Times New Roman", serif;
     --font-mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", ui-monospace, Menlo, monospace;
@@ -62,6 +66,10 @@
     --key-top: #241d15;
     --key-edge: #100c07;
     --scrollbar: #4d3f2b;
+    --hl-kw: #e8a07a;
+    --hl-str: #9cc59f;
+    --hl-com: #7d6f55;
+    --hl-num: #c9a2dc;
     color-scheme: dark;
   }
 
@@ -108,7 +116,7 @@
     padding: 10px 16px;
     background: var(--bg-elevated);
     border-bottom: 1px solid var(--rule);
-    z-index: 2;
+    z-index: 4;
     flex-wrap: wrap;
   }
 
@@ -180,6 +188,26 @@
     flex: none;
   }
   .theme-toggle svg { width: 16px; height: 16px; stroke: var(--ink); }
+  .lang-toggle { padding: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink); }
+  .lang-toggle:hover, .theme-toggle:hover { border-color: var(--rule-strong); }
+  .lang-toggle:hover { color: var(--accent); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Hangul needs none of the wide tracking used for uppercase Latin labels. */
+  :root[lang="ko"] .key, :root[lang="ko"] .brand .sub, :root[lang="ko"] .pane-head,
+  :root[lang="ko"] .statusbar, :root[lang="ko"] .edit-target, :root[lang="ko"] .insert-menu summary,
+  :root[lang="ko"] .findbar .key, :root[lang="ko"] .find-count { letter-spacing: 0.01em; }
+  :root[lang="ko"] .key { font-size: 12px; }
+  @media (max-width: 1240px) {
+    /* The status bar links already credit the author; keep the top bar on one row longer. */
+    .credit, .brand .sub { display: none; }
+  }
+  @media (max-width: 720px) {
+    /* Narrow screens: brand with language and theme on the first row, file keys below. */
+    .brand { order: -2; }
+    .lang-toggle { order: -1; margin-left: auto; }
+    .theme-toggle { order: -1; }
+    .topbar > .divider-v { display: none; }
+  }
 
   /* ---------- Editing tools ---------- */
   .editbar {
@@ -205,7 +233,7 @@
   .insert-menu { position: relative; }
   .insert-menu summary { list-style: none; width: auto; padding: 5px 9px; font-size: 11px; }
   .insert-menu summary::-webkit-details-marker { display: none; }
-  .insert-options { position: absolute; top: 37px; right: 0; min-width: 145px; padding: 5px; background: var(--bg-elevated); border: 1px solid var(--rule-strong); border-radius: 5px; box-shadow: 0 4px 12px var(--shadow-1); }
+  .insert-options { position: absolute; z-index: 10; top: 37px; right: 0; min-width: 145px; padding: 5px; background: var(--bg-elevated); border: 1px solid var(--rule-strong); border-radius: 5px; box-shadow: 0 4px 12px var(--shadow-1); }
   .insert-options button { display: block; width: 100%; padding: 8px; text-align: left; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
   .insert-options button:hover, .insert-options button:focus-visible { background: var(--key-top); color: var(--accent); }
   .insert-dialog { width: min(420px, calc(100% - 32px)); padding: 22px; border: 1px solid var(--rule-strong); border-radius: 8px; background: var(--bg-elevated); color: var(--ink); }
@@ -213,6 +241,39 @@
   .insert-dialog h2 { margin: 0 0 16px; font-size: 20px; }
   .insert-dialog label { display: block; margin: 12px 0; font-size: 14px; }
   .insert-dialog input { display: block; width: 100%; margin-top: 6px; padding: 9px; border: 1px solid var(--rule-strong); border-radius: 4px; color: var(--ink); background: var(--editor-bg); }
+  .outline-list { min-width: 220px; max-width: min(360px, 85vw); max-height: 60vh; overflow: auto; }
+  .outline-list button { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-body); font-size: 14px; }
+  .outline-empty { margin: 6px 8px; color: var(--ink-faint); font-size: 13px; }
+  .key-menu { position: relative; }
+  .key-menu summary { list-style: none; }
+  .key-menu summary::-webkit-details-marker { display: none; }
+  .key-menu[open] summary { color: var(--accent); }
+  .key-menu .insert-options { left: 0; right: auto; top: 40px; min-width: 215px; }
+  .key-menu .insert-options button { font-family: var(--font-body); font-size: 14px; }
+
+  .findbar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: none;
+    padding: 6px 16px; border-bottom: 1px solid var(--rule); background: var(--bg-well); z-index: 2;
+  }
+  .findbar[hidden] { display: none; }
+  .findbar input[type=search], .findbar input[type=text] {
+    width: 190px; max-width: 100%; height: 30px; padding: 0 8px; border: 1px solid var(--rule-strong); border-radius: 4px;
+    background: var(--editor-bg); color: var(--ink); font-family: var(--font-mono); font-size: 13px;
+  }
+  .findbar input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .find-case { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); cursor: pointer; }
+  .find-count { min-width: 74px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+  .findbar .key { padding: 5px 10px; }
+  @media (max-width: 720px) { .findbar { padding: 6px 10px; } .findbar input[type=search], .findbar input[type=text] { width: calc(50% - 4px); } }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 44px; z-index: 50; transform: translate(-50%, 12px);
+    max-width: min(560px, calc(100% - 32px)); padding: 10px 16px; border-radius: 6px;
+    background: var(--ink); color: var(--bg); font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+    box-shadow: 0 6px 18px var(--shadow-2); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
   .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
   @media (max-width: 720px) { .editbar { padding: 6px 10px; gap: 5px; } .edit-target { width: 100%; margin-left: 0; } }
 
@@ -224,7 +285,7 @@
     position: relative;
   }
   .stage.drag-over::before {
-    content: "Drop to open";
+    content: attr(data-drop-label);
     position: absolute;
     inset: 0;
     z-index: 10;
@@ -251,6 +312,9 @@
     overflow: hidden;
     position: relative;
   }
+  .stage.reading #editPane, .stage.reading .divider { display: none; }
+  .stage.reading #previewPane { flex: 1 1 100% !important; }
+
   .pane-head {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -411,6 +475,25 @@
   }
   #preview .page table.md-table th { background: var(--bg-well); font-family: var(--font-mono); font-size: 0.78em; letter-spacing: 0.06em; text-transform: uppercase; }
   #preview .page del { color: var(--ink-faint); }
+  #preview .page .hl-kw { color: var(--hl-kw); font-weight: 600; }
+  #preview .page .hl-str { color: var(--hl-str); }
+  #preview .page .hl-com { color: var(--hl-com); font-style: italic; }
+  #preview .page .hl-num { color: var(--hl-num); }
+  #preview .page pre.md-frontmatter {
+    margin: 0 0 1.4em; padding: 10px 14px; border: 1px dashed var(--rule-strong); border-radius: 6px;
+    font-family: var(--font-mono); font-size: 12px; line-height: 1.6; color: var(--ink-soft); background: transparent;
+    white-space: pre-wrap; cursor: default; user-select: text;
+  }
+  #preview .page pre.md-frontmatter::before { content: var(--label-front-matter, "front matter"); display: block; margin-bottom: 4px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+  #preview .page .md-refdefs { display: none; }
+  #preview .page li.task-item { list-style: none; margin-left: -1.3em; }
+  #preview .page input.md-task { width: 1em; height: 1em; margin: 0 .35em 0 0; vertical-align: -0.1em; accent-color: var(--accent); cursor: pointer; }
+  #preview .page sup.fnref { font-size: .72em; line-height: 0; margin-left: 1px; }
+  #preview .page sup.fnref a { text-decoration: none; padding: 0 2px; }
+  #preview .page .md-footnotes { margin: 1.4em 0; padding-top: .8em; border-top: 1px solid var(--rule); font-size: .88em; color: var(--ink-soft); cursor: default; }
+  #preview .page .md-fndef { margin: .3em 0; }
+  #preview .page .fn-num { font-family: var(--font-mono); font-size: .9em; color: var(--ink-faint); }
+  #preview .page .fn-back { text-decoration: none; }
 
   /* ---------- Status bar ---------- */
   .statusbar {
@@ -469,12 +552,30 @@
 
   input[type=file] { display: none; }
 
+  /* Print / Save as PDF: the rendered document only, on white paper. */
+  @media print {
+    :root, :root.ink {
+      --bg: #fff; --bg-well: #f3efe6; --preview-bg: #fff; --ink: #1d1a16; --ink-soft: #4a4238; --ink-faint: #7a7060;
+      --rule: #d8d0bf; --rule-strong: #b9ad94; --accent: #8a3a1f; --code-bg: #f3efe6;
+      --hl-kw: #8a3a1f; --hl-str: #3f5c43; --hl-com: #7a7060; --hl-num: #6a4088;
+      color-scheme: light;
+    }
+    html, body { height: auto; overflow: visible; background: #fff; display: block; }
+    body::before, .topbar, .editbar, .findbar, .statusbar, #editPane, .divider, .scroll-fab, .toast, .pane-head { display: none !important; }
+    .stage, .pane, #previewPane, #preview { display: block; overflow: visible; height: auto; min-height: 0; padding: 0; background: #fff; }
+    #preview .page { max-width: none; font-size: 11.5pt; }
+    #preview .page pre.md-frontmatter { display: none; }
+    #preview .page pre, #preview .page table, #preview .page img, #preview .page blockquote { break-inside: avoid; }
+    #preview .page h1, #preview .page h2, #preview .page h3, #preview .page h4 { break-after: avoid; }
+    #preview .page a { color: inherit; }
+  }
+
   @media (max-width: 720px) {
     .brand .sub { display: none; }
     .key span.label { display: none; }
     .credit { display: none; }
     .statusbar { gap: 12px; padding: 6px 12px; }
-    .statusbar #fsSupport { display: none; }
+    .statusbar #fsSupport, .statusbar #fileFormat { display: none; }
     .statusbar .social { padding-left: 12px; }
   }
   @media (max-width: 1100px) {
@@ -505,6 +606,17 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 3h11l5 5v13H5z"/><path d="M8 3v6h6V3"/><path d="M9 17.5 11 21l4-5"/></svg>
       <span class="label">Save As</span>
     </button>
+    <details class="key-menu" id="exportMenu">
+      <summary class="key" title="Export, copy, or print the rendered document">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15V3M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+        <span class="label">Export</span>
+      </summary>
+      <div class="insert-options">
+        <button type="button" id="btnExportHtml">Export as HTML…</button>
+        <button type="button" id="btnCopyHtml">Copy as formatted text</button>
+        <button type="button" id="btnPrint">Print / Save as PDF…</button>
+      </div>
+    </details>
   </div>
 
   <div class="spacer"></div>
@@ -516,40 +628,62 @@
 
   <a class="credit" href="https://cantips.com" target="_blank" rel="noopener noreferrer">Chulwoo Park, <span id="creditYear"></span></a>
 
-  <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+  <button type="button" class="theme-toggle lang-toggle" id="langToggle" title="한국어로 보기 (Switch to Korean)" aria-label="한국어로 보기 (Switch to Korean)">한</button>
+
+  <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
     <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
   </button>
 </div>
 
 <div class="editbar" id="editToolbar" role="toolbar" aria-label="Editing tools">
-  <div class="tool-group" role="group" aria-label="History">
+  <div class="tool-group" role="group" data-group="history" aria-label="History">
     <button type="button" class="tool" data-command="undo" title="Undo (Ctrl+Z)" aria-label="Undo" disabled><svg viewBox="0 0 24 24"><path d="M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12" transform="translate(0 -2)"/></svg></button>
     <button type="button" class="tool" data-command="redo" title="Redo (Ctrl+Shift+Z / Ctrl+Y)" aria-label="Redo" disabled><svg viewBox="0 0 24 24"><path d="m15 5 5 5-5 5M20 10H10a6 6 0 0 0 0 12" transform="translate(0 -2)"/></svg></button>
   </div>
   <div class="divider-v" aria-hidden="true"></div>
-  <div class="tool-group" role="group" aria-label="Text formatting">
+  <div class="tool-group" role="group" data-group="text" aria-label="Text formatting">
     <button type="button" class="tool" data-command="bold" title="Bold (Ctrl+B)" aria-label="Bold"><svg viewBox="0 0 24 24"><path d="M7 4h6a4 4 0 0 1 0 8H7V4Zm0 8h7a4 4 0 0 1 0 8H7v-8Z" stroke-width="2.5"/></svg></button>
     <button type="button" class="tool" data-command="italic" title="Italic (Ctrl+I)" aria-label="Italic"><svg viewBox="0 0 24 24"><path d="M10 4h9M5 20h9M15 4 9 20"/></svg></button>
     <button type="button" class="tool" data-command="strike" title="Strikethrough" aria-label="Strikethrough"><svg viewBox="0 0 24 24"><path d="M17 6c-1-3-10-3-10 2 0 2 2 3 5 4M7 18c2 3 10 3 10-2 0-2-2-3-5-4M3 12h18"/></svg></button>
   </div>
   <div class="divider-v" aria-hidden="true"></div>
-  <div class="tool-group" role="group" aria-label="Paragraph formatting">
+  <div class="tool-group" role="group" data-group="paragraph" aria-label="Paragraph formatting">
     <select class="heading-tool" id="headingTool" aria-label="Heading level" title="Paragraph or heading">
       <option value="">Heading</option><option value="0">Paragraph</option><option value="1">Heading 1</option><option value="2">Heading 2</option><option value="3">Heading 3</option><option value="4">Heading 4</option><option value="5">Heading 5</option><option value="6">Heading 6</option>
     </select>
     <button type="button" class="tool" data-command="bullet" title="Bullet list" aria-label="Bullet list"><svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
     <button type="button" class="tool" data-command="ordered" title="Numbered list" aria-label="Numbered list"><svg viewBox="0 0 24 24"><path d="M10 6h11M10 12h11M10 18h11M3 3h2v5M3 8h4M3 12c0-3 4-3 4-1 0 1-4 3-4 5h4M3 19h3l-2 2h2"/></svg></button>
+    <button type="button" class="tool" data-command="task" title="Task list (checkboxes)" aria-label="Task list"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1"/><path d="m4.5 16 1.5 1.5L9 14.5M13 7h8M13 16h8"/></svg></button>
     <button type="button" class="tool" data-command="quote" title="Blockquote" aria-label="Blockquote"><svg viewBox="0 0 24 24"><path d="M4 4v16M9 7h12M9 12h12M9 17h8"/></svg></button>
   </div>
   <div class="divider-v" aria-hidden="true"></div>
-  <div class="tool-group" role="group" aria-label="Insert">
+  <div class="tool-group" role="group" data-group="insert" aria-label="Insert">
     <button type="button" class="tool" data-command="link" title="Insert link (Ctrl+K)" aria-label="Insert link"><svg viewBox="0 0 24 24"><path d="m10 13 4-4M9 15l-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M15 9l2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(0 -1)"/></svg></button>
     <button type="button" class="tool" data-command="code" title="Inline code" aria-label="Inline code"><svg viewBox="0 0 24 24"><path d="m7 6-6 6 6 6M17 6l6 6-6 6M14 3l-4 18"/></svg></button>
     <details class="insert-menu" id="insertMenu"><summary class="tool" title="More insert options">More</summary><div class="insert-options">
       <button type="button" data-command="table">Insert table</button><button type="button" data-command="image">Insert image</button><button type="button" data-command="codeblock">Code block</button>
     </div></details>
   </div>
+  <div class="divider-v" aria-hidden="true"></div>
+  <div class="tool-group" role="group" data-group="view" aria-label="Find and view">
+    <button type="button" class="tool" id="btnFind" title="Find and replace (Ctrl+F / Ctrl+H)" aria-label="Find and replace"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 6 6"/></svg></button>
+    <details class="insert-menu outline-menu" id="outlineMenu"><summary class="tool" title="Outline — jump to a heading" aria-label="Outline"><svg viewBox="0 0 24 24"><path d="M4 6h16M8 12h12M12 18h8"/></svg></summary><div class="insert-options outline-list" id="outlineList"></div></details>
+    <button type="button" class="tool" id="btnSync" aria-pressed="true" title="Scroll both panes together" aria-label="Scroll both panes together"><svg viewBox="0 0 24 24"><path d="M7 4v16M4 7l3-3 3 3M4 17l3 3 3-3M17 4v16M14 7l3-3 3 3M14 17l3 3 3-3"/></svg></button>
+    <button type="button" class="tool" id="btnReading" aria-pressed="false" title="Reading mode — show the rendered pane only" aria-label="Reading mode"><svg viewBox="0 0 24 24"><path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/></svg></button>
+  </div>
   <span class="edit-target" id="editTarget" aria-live="polite">Editing: Manuscript</span>
+</div>
+
+<div class="findbar" id="findBar" role="search" aria-label="Find and replace in the manuscript" hidden>
+  <input type="search" id="findInput" placeholder="Find" aria-label="Find" autocomplete="off" spellcheck="false" />
+  <input type="text" id="replaceInput" placeholder="Replace with" aria-label="Replace with" autocomplete="off" spellcheck="false" />
+  <label class="find-case" title="Match case"><input type="checkbox" id="findCase" /> Aa</label>
+  <span class="find-count" id="findCount" aria-live="polite"></span>
+  <button type="button" class="tool" id="findPrev" title="Previous (Shift+Enter)" aria-label="Previous match"><svg viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg></button>
+  <button type="button" class="tool" id="findNext" title="Next (Enter)" aria-label="Next match"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <button type="button" class="key" id="replaceOne">Replace</button>
+  <button type="button" class="key" id="replaceAll">Replace all</button>
+  <button type="button" class="tool" id="findClose" title="Close (Esc)" aria-label="Close find and replace"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
 </div>
 
 <dialog class="insert-dialog" id="insertDialog" aria-labelledby="insertDialogTitle">
@@ -561,7 +695,7 @@
   </form>
 </dialog>
 
-<div class="stage" id="stage">
+<div class="stage" id="stage" data-drop-label="Drop to open">
   <div class="pane" id="editPane">
     <div class="pane-head">Manuscript</div>
     <textarea id="editor" spellcheck="false" placeholder="# Start writing…
@@ -597,6 +731,7 @@ Open a .md file, or just type here."></textarea>
   <span id="charCount">0 chars</span>
   <span class="hint">Both panes are editable — for the safest results, prefer the manuscript pane.</span>
   <span class="grow"></span>
+  <span id="fileFormat"></span>
   <span id="fsSupport"></span>
   <nav class="social" aria-label="Chulwoo Park online">
     <a href="https://cantips.com" target="_blank" rel="noopener noreferrer" title="Blog" aria-label="Blog (opens in a new window)">
@@ -617,11 +752,175 @@ Open a .md file, or just type here."></textarea>
   </nav>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" />
 
 <script>
 (function () {
   "use strict";
+
+  /* ---------------- Interface language (English default, Korean optional) ---------------- */
+
+  const STRINGS = {
+    en: {
+      brandSub: "plain-text companion",
+      new: "New", newTitle: "New (Ctrl+Alt+N)",
+      open: "Open", openTitle: "Open (Ctrl+O)",
+      save: "Save", saveTitle: "Save (Ctrl+S)",
+      saveAs: "Save As", saveAsTitle: "Save As (Ctrl+Shift+S)",
+      export: "Export", exportTitle: "Export, copy, or print the rendered document",
+      exportHtml: "Export as HTML…", copyHtml: "Copy as formatted text", print: "Print / Save as PDF…",
+      install: "Install", installTitle: "Install MD·Buddy as an app",
+      themeTitle: "Toggle theme",
+      langButton: "한", langTitle: "한국어로 보기 (Switch to Korean)",
+      editingTools: "Editing tools", groupHistory: "History", groupText: "Text formatting",
+      groupParagraph: "Paragraph formatting", groupInsert: "Insert", groupView: "Find and view",
+      undo: "Undo", undoTitle: "Undo (Ctrl+Z)", redo: "Redo", redoTitle: "Redo (Ctrl+Shift+Z / Ctrl+Y)",
+      bold: "Bold", boldTitle: "Bold (Ctrl+B)", italic: "Italic", italicTitle: "Italic (Ctrl+I)", strike: "Strikethrough",
+      headingLevel: "Heading level", headingTitle: "Paragraph or heading", headingPick: "Heading", paragraph: "Paragraph", headingN: "Heading {n}",
+      bullet: "Bullet list", ordered: "Numbered list", task: "Task list", taskTitle: "Task list (checkboxes)", quote: "Blockquote",
+      link: "Insert link", linkTitle: "Insert link (Ctrl+K)", code: "Inline code",
+      more: "More", moreTitle: "More insert options", insertTable: "Insert table", insertImage: "Insert image", codeBlock: "Code block",
+      find: "Find and replace", findTitle: "Find and replace (Ctrl+F / Ctrl+H)",
+      outline: "Outline", outlineTitle: "Outline — jump to a heading",
+      sync: "Scroll both panes together", reading: "Reading mode", readingTitle: "Reading mode — show the rendered pane only",
+      editing: "Editing: {pane}", manuscript: "Manuscript", rendered: "Rendered",
+      findBar: "Find and replace in the manuscript", findPlaceholder: "Find", replacePlaceholder: "Replace with", matchCase: "Match case",
+      prev: "Previous match", prevTitle: "Previous (Shift+Enter)", next: "Next match", nextTitle: "Next (Enter)",
+      replace: "Replace", replaceAll: "Replace all", closeFind: "Close find and replace", closeFindTitle: "Close (Esc)",
+      foundCount: "{n} found", foundOf: "{i} of {n}", noResults: "No results",
+      linkDialog: "Insert link", imageDialog: "Insert image", linkText: "Link text", imageText: "Image description",
+      linkDefault: "Link", imageDefault: "Image", cancel: "Cancel", insert: "Insert",
+      urlInvalid: "Use an HTTP, HTTPS, or mailto URL.", imageUrlInvalid: "Use an HTTP or HTTPS image URL.",
+      editorPlaceholder: "# Start writing…\n\nOpen a .md file, or just type here.",
+      previewPlaceholder: "Nothing to read yet — start writing in the manuscript pane, or type directly here.",
+      scrollTop: "Scroll to top", scrollBottom: "Scroll to bottom", dropToOpen: "Drop to open", frontMatter: "front matter",
+      words: "{n} words", word: "{n} word", chars: "{n} chars", char: "{n} char",
+      hint: "Both panes are editable — for the safest results, prefer the manuscript pane.",
+      fsNative: "native file access", fsDownload: "download-based save",
+      formatTitle: "File encoding and line endings — kept as they were when saving", formatWillConvert: " (this file will be saved as UTF-8)",
+      socialNav: "Chulwoo Park online", newWindow: "{name} (opens in a new window)", blog: "Blog",
+      discard: "Discard unsaved changes?",
+      openedAs: "Opened as {enc}. Saving will convert this file to UTF-8.",
+      confirmUtf8: "This file was opened as {enc}. Save it as UTF-8?",
+      openFailed: "Could not open file: {msg}", saveFailed: "Could not save file: {msg}", exportFailed: "Could not export: {msg}",
+      replaced: "Replaced {n} matches.", replacedOne: "Replaced 1 match.", exported: "Exported {name}.",
+      copied: "Copied — paste into a mail, blog, or document editor.", copyFailed: "Could not copy: this browser blocked clipboard access.",
+      outlineEmpty: "No headings yet.", untitled: "(untitled)", fnBack: "Back to reference",
+      textPlaceholder: "text", linePlaceholder: "Text",
+      tableTemplate: "| Column 1 | Column 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |",
+    },
+    ko: {
+      brandSub: "텍스트 문서 도우미",
+      new: "새 문서", newTitle: "새 문서 (Ctrl+Alt+N)",
+      open: "열기", openTitle: "열기 (Ctrl+O)",
+      save: "저장", saveTitle: "저장 (Ctrl+S)",
+      saveAs: "다른 이름으로", saveAsTitle: "다른 이름으로 저장 (Ctrl+Shift+S)",
+      export: "내보내기", exportTitle: "렌더링된 문서를 내보내거나 복사하거나 인쇄합니다",
+      exportHtml: "HTML로 내보내기…", copyHtml: "서식 있는 텍스트로 복사", print: "인쇄 / PDF로 저장…",
+      install: "설치", installTitle: "MD·Buddy를 앱으로 설치",
+      themeTitle: "테마 전환",
+      langButton: "EN", langTitle: "Switch to English (영어로 보기)",
+      editingTools: "편집 도구", groupHistory: "실행 기록", groupText: "글자 서식",
+      groupParagraph: "문단 서식", groupInsert: "삽입", groupView: "찾기와 보기",
+      undo: "실행 취소", undoTitle: "실행 취소 (Ctrl+Z)", redo: "다시 실행", redoTitle: "다시 실행 (Ctrl+Shift+Z / Ctrl+Y)",
+      bold: "굵게", boldTitle: "굵게 (Ctrl+B)", italic: "기울임", italicTitle: "기울임 (Ctrl+I)", strike: "취소선",
+      headingLevel: "제목 수준", headingTitle: "본문 또는 제목", headingPick: "제목", paragraph: "본문", headingN: "제목 {n}",
+      bullet: "글머리 기호 목록", ordered: "번호 목록", task: "체크리스트", taskTitle: "체크리스트 (확인란)", quote: "인용",
+      link: "링크 삽입", linkTitle: "링크 삽입 (Ctrl+K)", code: "인라인 코드",
+      more: "더 보기", moreTitle: "기타 삽입", insertTable: "표 삽입", insertImage: "이미지 삽입", codeBlock: "코드 블록",
+      find: "찾기 및 바꾸기", findTitle: "찾기 및 바꾸기 (Ctrl+F / Ctrl+H)",
+      outline: "목차", outlineTitle: "목차 — 제목으로 이동",
+      sync: "두 창 함께 스크롤", reading: "읽기 모드", readingTitle: "읽기 모드 — 렌더링 창만 보기",
+      editing: "편집 대상: {pane}", manuscript: "원문", rendered: "렌더링",
+      findBar: "원문에서 찾기 및 바꾸기", findPlaceholder: "찾을 내용", replacePlaceholder: "바꿀 내용", matchCase: "대소문자 구분",
+      prev: "이전 결과", prevTitle: "이전 (Shift+Enter)", next: "다음 결과", nextTitle: "다음 (Enter)",
+      replace: "바꾸기", replaceAll: "모두 바꾸기", closeFind: "찾기 및 바꾸기 닫기", closeFindTitle: "닫기 (Esc)",
+      foundCount: "{n}개 찾음", foundOf: "{i} / {n}", noResults: "결과 없음",
+      linkDialog: "링크 삽입", imageDialog: "이미지 삽입", linkText: "링크 텍스트", imageText: "이미지 설명",
+      linkDefault: "링크", imageDefault: "이미지", cancel: "취소", insert: "삽입",
+      urlInvalid: "HTTP, HTTPS 또는 mailto 주소를 입력하세요.", imageUrlInvalid: "HTTP 또는 HTTPS 이미지 주소를 입력하세요.",
+      editorPlaceholder: "# 글쓰기 시작…\n\n.md 파일을 열거나 여기에 바로 입력하세요.",
+      previewPlaceholder: "아직 읽을 내용이 없습니다 — 원문 창에 쓰거나 여기에 바로 입력하세요.",
+      scrollTop: "맨 위로", scrollBottom: "맨 아래로", dropToOpen: "놓으면 열립니다", frontMatter: "머리말",
+      words: "{n}단어", word: "{n}단어", chars: "{n}자", char: "{n}자",
+      hint: "두 창 모두 편집할 수 있습니다 — 가장 안전하게 편집하려면 원문 창을 쓰세요.",
+      fsNative: "파일 직접 저장", fsDownload: "다운로드로 저장",
+      formatTitle: "파일 인코딩과 줄바꿈 — 저장할 때 그대로 유지됩니다", formatWillConvert: " (이 파일은 UTF-8로 저장됩니다)",
+      socialNav: "Chulwoo Park 온라인 채널", newWindow: "{name} (새 창에서 열림)", blog: "블로그",
+      discard: "저장하지 않은 변경 내용을 버릴까요?",
+      openedAs: "{enc} 인코딩으로 열었습니다. 저장하면 UTF-8로 변환됩니다.",
+      confirmUtf8: "이 파일은 {enc} 인코딩으로 열렸습니다. UTF-8로 저장할까요?",
+      openFailed: "파일을 열 수 없습니다: {msg}", saveFailed: "파일을 저장할 수 없습니다: {msg}", exportFailed: "내보낼 수 없습니다: {msg}",
+      replaced: "{n}개를 바꿨습니다.", replacedOne: "1개를 바꿨습니다.", exported: "{name} 파일로 내보냈습니다.",
+      copied: "복사했습니다 — 메일, 블로그, 문서 편집기에 붙여넣으세요.", copyFailed: "복사하지 못했습니다: 브라우저가 클립보드 접근을 막았습니다.",
+      outlineEmpty: "아직 제목이 없습니다.", untitled: "(제목 없음)", fnBack: "본문으로 돌아가기",
+      textPlaceholder: "텍스트", linePlaceholder: "텍스트",
+      tableTemplate: "| 열 1 | 열 2 |\n| --- | --- |\n| 셀 1 | 셀 2 |",
+    },
+  };
+
+  let lang = "en";
+  try { lang = localStorage.getItem("mdbuddy-lang") === "ko" ? "ko" : "en"; } catch (e) {}
+
+  function t(key, vars) {
+    const text = (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
+    return vars ? text.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? vars[name] : m)) : text;
+  }
+
+  // [selector, what to set, string key]. "text" sets textContent; others are attribute names.
+  const I18N_BINDINGS = [
+    [".brand .sub", "text", "brandSub"],
+    ["#btnNew .label", "text", "new"], ["#btnNew", "title", "newTitle"],
+    ["#btnOpen .label", "text", "open"], ["#btnOpen", "title", "openTitle"],
+    ["#btnSave .label", "text", "save"], ["#btnSave", "title", "saveTitle"],
+    ["#btnSaveAs .label", "text", "saveAs"], ["#btnSaveAs", "title", "saveAsTitle"],
+    ["#exportMenu .label", "text", "export"], ["#exportMenu summary", "title", "exportTitle"],
+    ["#btnExportHtml", "text", "exportHtml"], ["#btnCopyHtml", "text", "copyHtml"], ["#btnPrint", "text", "print"],
+    ["#btnInstall .label", "text", "install"], ["#btnInstall", "title", "installTitle"],
+    ["#themeToggle", "title", "themeTitle"], ["#themeToggle", "aria-label", "themeTitle"],
+    ["#langToggle", "text", "langButton"], ["#langToggle", "title", "langTitle"], ["#langToggle", "aria-label", "langTitle"],
+    ["#editToolbar", "aria-label", "editingTools"],
+    ["[data-group=history]", "aria-label", "groupHistory"], ["[data-group=text]", "aria-label", "groupText"],
+    ["[data-group=paragraph]", "aria-label", "groupParagraph"], ["[data-group=insert]", "aria-label", "groupInsert"],
+    ["[data-group=view]", "aria-label", "groupView"],
+    ["[data-command=undo]", "aria-label", "undo"], ["[data-command=undo]", "title", "undoTitle"],
+    ["[data-command=redo]", "aria-label", "redo"], ["[data-command=redo]", "title", "redoTitle"],
+    ["[data-command=bold]", "aria-label", "bold"], ["[data-command=bold]", "title", "boldTitle"],
+    ["[data-command=italic]", "aria-label", "italic"], ["[data-command=italic]", "title", "italicTitle"],
+    ["[data-command=strike]", "aria-label", "strike"], ["[data-command=strike]", "title", "strike"],
+    ["#headingTool", "aria-label", "headingLevel"], ["#headingTool", "title", "headingTitle"],
+    ["[data-command=bullet]", "aria-label", "bullet"], ["[data-command=bullet]", "title", "bullet"],
+    ["[data-command=ordered]", "aria-label", "ordered"], ["[data-command=ordered]", "title", "ordered"],
+    ["[data-command=task]", "aria-label", "task"], ["[data-command=task]", "title", "taskTitle"],
+    ["[data-command=quote]", "aria-label", "quote"], ["[data-command=quote]", "title", "quote"],
+    ["[data-command=link]", "aria-label", "link"], ["[data-command=link]", "title", "linkTitle"],
+    ["[data-command=code]", "aria-label", "code"], ["[data-command=code]", "title", "code"],
+    ["#insertMenu summary", "text", "more"], ["#insertMenu summary", "title", "moreTitle"],
+    ["[data-command=table]", "text", "insertTable"], ["[data-command=image]", "text", "insertImage"], ["[data-command=codeblock]", "text", "codeBlock"],
+    ["#btnFind", "aria-label", "find"], ["#btnFind", "title", "findTitle"],
+    ["#outlineMenu summary", "aria-label", "outline"], ["#outlineMenu summary", "title", "outlineTitle"],
+    ["#btnSync", "aria-label", "sync"], ["#btnSync", "title", "sync"],
+    ["#btnReading", "aria-label", "reading"], ["#btnReading", "title", "readingTitle"],
+    ["#findBar", "aria-label", "findBar"],
+    ["#findInput", "placeholder", "findPlaceholder"], ["#findInput", "aria-label", "findPlaceholder"],
+    ["#replaceInput", "placeholder", "replacePlaceholder"], ["#replaceInput", "aria-label", "replacePlaceholder"],
+    [".find-case", "title", "matchCase"],
+    ["#findPrev", "aria-label", "prev"], ["#findPrev", "title", "prevTitle"],
+    ["#findNext", "aria-label", "next"], ["#findNext", "title", "nextTitle"],
+    ["#replaceOne", "text", "replace"], ["#replaceAll", "text", "replaceAll"],
+    ["#findClose", "aria-label", "closeFind"], ["#findClose", "title", "closeFindTitle"],
+    ["#cancelInsert", "text", "cancel"], ['#insertForm button[type="submit"]', "text", "insert"],
+    ["#insertDialogTitle", "text", "linkDialog"], ["#insertLabelText", "text", "linkText"],
+    ["#editPane .pane-head", "text", "manuscript"], ["#previewPane .pane-head", "text", "rendered"],
+    ["#editor", "placeholder", "editorPlaceholder"], ["#previewPage", "data-placeholder", "previewPlaceholder"],
+    ["#editorScrollTop, #previewScrollTop", "title", "scrollTop"], ["#editorScrollTop, #previewScrollTop", "aria-label", "scrollTop"],
+    ["#editorScrollBottom, #previewScrollBottom", "title", "scrollBottom"], ["#editorScrollBottom, #previewScrollBottom", "aria-label", "scrollBottom"],
+    ["#stage", "data-drop-label", "dropToOpen"],
+    [".statusbar .hint", "text", "hint"],
+    [".statusbar .social", "aria-label", "socialNav"],
+  ];
 
   /* ---------------- Markdown renderer (hand-written, dependency-free) ---------------- */
 
@@ -630,6 +929,61 @@ Open a .md file, or just type here."></textarea>
               .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
   const escapeAttr = escapeHtml;
+
+  function unescapeHtml(str) {
+    return str.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+  }
+
+  // Script URLs never become clickable or exported; data: is allowed for images only.
+  function safeUrl(url, forImage) {
+    const u = url.trim();
+    if (/^(javascript|vbscript|file):/i.test(u.replace(/[\s\x00-\x1f]/g, ""))) return "#";
+    if (/^data:/i.test(u) && !(forImage && /^data:image\//i.test(u))) return "#";
+    return u;
+  }
+
+  // Document-wide link reference definitions and footnote numbering, set by renderDocument().
+  let refDefs = new Map();
+  let footnoteNumbers = new Map();
+  const REF_DEF_RE = /^ {0,3}\[(?!\^)([^\]]+)\]:\s*<?([^\s>]+)>?(?:\s+(?:"([^"]*)"|'([^']*)'|\(([^)]*)\)))?\s*$/;
+  const FN_DEF_RE = /^ {0,3}\[\^([^\]\s]+)\]:\s?(.*)$/;
+  const LIST_ITEM_RE = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
+
+  /* ---- Lightweight code highlighting (keywords, strings, comments, numbers) ---- */
+  const HL_WORDS = {
+    js: "async await break case catch class const continue debugger default delete do else export extends false finally for from function get if import in instanceof let new null of return set static super switch this throw true try typeof undefined var void while with yield interface type enum implements private public protected readonly",
+    py: "and as assert async await break class continue def del elif else except False finally for from global if import in is lambda None nonlocal not or pass raise return self True try while with yield",
+    c: "abstract auto bool boolean break byte case catch char class const continue default do double else enum extends false final finally float fn for func go if impl import include int interface let long match mod mut namespace new null nullptr package private protected pub public return self short static struct super switch template this throw true try typedef type union unsigned use using var void volatile where while",
+    sh: "if then else elif fi for while until do done case esac in function return local export echo exit set unset source alias cd sudo",
+    sql: "select from where and or not insert into values update set delete create table drop alter add index primary key foreign references join left right inner outer on group by order having limit offset as distinct union all null is like in between case when then else end",
+    css: "important",
+  };
+  const HL_ALIASES = { javascript: "js", jsx: "js", ts: "js", tsx: "js", typescript: "js", mjs: "js", json: "js", python: "py",
+    bash: "sh", shell: "sh", zsh: "sh", powershell: "sh", ps1: "sh", console: "sh", yaml: "sh", yml: "sh", toml: "sh",
+    java: "c", cpp: "c", "c++": "c", cs: "c", csharp: "c", go: "c", rust: "c", rs: "c", kotlin: "c", swift: "c", php: "c", dart: "c" };
+  function highlightCode(code, lang) {
+    const key = HL_ALIASES[lang] || lang;
+    if (!key || !(key in HL_WORDS || key === "html" || key === "xml")) return escapeHtml(code);
+    const markup = key === "html" || key === "xml";
+    const words = new Set((HL_WORDS[key] || "").split(" "));
+    const hashComment = key === "py" || key === "sh";
+    const parts = [
+      markup ? "<!--[\\s\\S]*?-->" : key === "sql" ? "--[^\\n]*" : hashComment ? "#[^\\n]*" : "\\/\\/[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/",
+      '"(?:\\\\.|[^"\\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\\n])*\'' + (key === "js" || key === "sh" ? "|`(?:\\\\.|[^`\\\\])*`" : ""),
+      "\\b\\d+(?:\\.\\d+)?\\b",
+      markup ? "<\\/?[A-Za-z][\\w:-]*|\\/?>" : "[A-Za-z_$][\\w$]*",
+    ];
+    const re = new RegExp(parts.map((p) => "(" + p + ")").join("|"), "g");
+    let out = "", last = 0, m;
+    while ((m = re.exec(code))) {
+      out += escapeHtml(code.slice(last, m.index));
+      const cls = m[1] ? "hl-com" : m[2] ? "hl-str" : m[3] ? "hl-num" : (markup || words.has(key === "sql" ? m[0].toLowerCase() : m[0])) ? "hl-kw" : "";
+      out += cls ? `<span class="${cls}">${escapeHtml(m[0])}</span>` : escapeHtml(m[0]);
+      last = re.lastIndex;
+    }
+    return out + escapeHtml(code.slice(last));
+  }
 
   function splitTableRow(row) {
     let r = row.trim();
@@ -652,20 +1006,60 @@ Open a .md file, or just type here."></textarea>
     });
     s = escapeHtml(s);
 
-    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
-      (m, alt, url, title) => `<img src="${escapeAttr(url)}" alt="${escapeAttr(alt)}"${title ? ` title="${escapeAttr(title)}"` : ""}>`);
+    // Captured URLs/alt/title are already HTML-escaped at this point; unescape before
+    // building attributes so "&" is not double-encoded (and not corrupted on round trip).
+    const attr = (v) => escapeAttr(unescapeHtml(v));
+    const titleAttr = (title) => title ? ` title="${attr(title)}"` : "";
 
-    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
-      (m, txt, url, title) => `<a href="${escapeAttr(url)}"${title ? ` title="${escapeAttr(title)}"` : ""} target="_blank" rel="noopener noreferrer">${txt}</a>`);
+    // Footnote references: [^id]
+    s = s.replace(/\[\^([^\]\s]+)\]/g, (m, id) => {
+      const key = unescapeHtml(id);
+      const num = footnoteNumbers.get(key) || "?";
+      return `<sup class="fnref" contenteditable="false" data-fn="${attr(id)}" id="fnref-${attr(id)}"><a href="#fn-${attr(id)}">${num}</a></sup>`;
+    });
+
+    // A blocked URL keeps its original text in data-src-url so editing never rewrites the source.
+    const urlAttrs = (name, url, forImage) => {
+      const raw = unescapeHtml(url), safe = safeUrl(raw, forImage);
+      return `${name}="${escapeAttr(safe)}"` + (safe !== raw ? ` data-src-url="${escapeAttr(raw)}"` : "");
+    };
+    // URLs may contain one level of balanced parentheses, e.g. Wikipedia links.
+    s = s.replace(/!\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g,
+      (m, alt, url, title) => `<img ${urlAttrs("src", url, true)} alt="${attr(alt)}"${titleAttr(title)}>`);
+
+    s = s.replace(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)(?:\s+"([^"]*)")?\)/g,
+      (m, txt, url, title) => `<a ${urlAttrs("href", url)}${titleAttr(title)} target="_blank" rel="noopener noreferrer">${txt}</a>`);
+
+    // Reference-style images and links: ![alt][id], [text][id], [text][]
+    s = s.replace(/(!?)\[([^\]]+)\]\[([^\]]*)\]/g, (m, bang, txt, id) => {
+      const def = refDefs.get(unescapeHtml(id || txt).trim().toLowerCase());
+      if (!def) return m;
+      const refAttr = ` data-ref="${attr(id)}"`;
+      if (bang) return `<img src="${escapeAttr(safeUrl(def.url, true))}" alt="${attr(txt)}"${def.title ? ` title="${escapeAttr(def.title)}"` : ""}${refAttr}>`;
+      return `<a href="${escapeAttr(safeUrl(def.url))}"${def.title ? ` title="${escapeAttr(def.title)}"` : ""}${refAttr} target="_blank" rel="noopener noreferrer">${txt}</a>`;
+    });
 
     s = s.replace(/&lt;((?:https?|mailto):[^&\s]+)&gt;/g,
-      (m, url) => `<a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+      (m, url) => `<a href="${attr(url)}" data-angle="1" target="_blank" rel="noopener noreferrer">${url}</a>`);
+
+    // Bare URLs (GitHub-style autolinks), only in text outside existing tags and links.
+    s = s.split(/(<a\b[^>]*>[\s\S]*?<\/a>|<[^>]+>)/).map((part, idx) => idx % 2 ? part :
+      part.replace(/(^|[\s(（\[])((?:https?:\/\/|www\.)[^\s<]*[^\s<.,:;!?'")\]])/g, (m, lead, url) => {
+        const href = /^www\./i.test(url) ? "https://" + unescapeHtml(url) : unescapeHtml(url);
+        return `${lead}<a href="${escapeAttr(href)}" data-auto="1" target="_blank" rel="noopener noreferrer">${url}</a>`;
+      })).join("");
+
+    // Hide opening tags (and their URLs/attributes) from the emphasis rules below.
+    const tagStore = [];
+    s = s.replace(/<[a-z][^>]*>/gi, (t) => { tagStore.push(t); return "" + (tagStore.length - 1) + ""; });
 
     s = s.replace(/(\*\*\*|___)(.+?)\1/g, "<strong><em>$2</em></strong>");
     s = s.replace(/(\*\*|__)(.+?)\1/g, "<strong>$2</strong>");
     s = s.replace(/(^|[^\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)/g, "$1<em>$2</em>");
     s = s.replace(/\b_(?!\s)(.+?)(?<!\s)_\b/g, "<em>$1</em>");
     s = s.replace(/~~(.+?)~~/g, "<del>$1</del>");
+
+    s = s.replace(/(\d+)/g, (m, idx) => tagStore[Number(idx)]);
 
     s = s.replace(/ {2,}\n/g, "<br>\n").replace(/\\\n/g, "<br>\n");
 
@@ -683,29 +1077,70 @@ Open a .md file, or just type here."></textarea>
 
   function renderListItemContent(text) {
     const lines = text.split("\n");
-    const first = lines[0];
+    let first = lines[0];
     const rest = lines.slice(1).join("\n");
-    let html = renderInline(first);
+    let task = "";
+    const taskMatch = first.match(/^\[([ xX])\](?:\s+|$)(.*)$/);
+    if (taskMatch) {
+      task = `<input type="checkbox" class="md-task" tabindex="-1"${taskMatch[1] === " " ? "" : " checked"}> `;
+      first = taskMatch[2];
+    }
+    let html = task + renderInline(first);
     if (rest.trim()) html += renderMarkdown(dedent(rest));
-    return html;
+    return { html, task: !!task };
   }
 
   function isOutlineNumberLine(line) {
     return /^ {0,3}\d+(?:\.\d+)+\.?\s+\S/.test(line);
   }
 
-  function renderMarkdown(src) {
+  // Entry point for a whole document: collects link definitions and footnote numbers first.
+  function renderDocument(src) {
+    const text = src.replace(/\r\n?/g, "\n");
+    refDefs = new Map();
+    footnoteNumbers = new Map();
+    let inFence = false;
+    text.split("\n").forEach((line) => {
+      if (/^ {0,3}(`{3,}|~{3,})/.test(line)) inFence = !inFence;
+      if (inFence) return;
+      const m = line.match(REF_DEF_RE);
+      if (m) {
+        const key = m[1].trim().toLowerCase();
+        if (!refDefs.has(key)) refDefs.set(key, { url: m[2], title: m[3] || m[4] || m[5] || "" });
+      }
+    });
+    for (const m of text.matchAll(/\[\^([^\]\s]+)\]/g)) {
+      if (!footnoteNumbers.has(m[1])) footnoteNumbers.set(m[1], footnoteNumbers.size + 1);
+    }
+    return renderMarkdown(text, true);
+  }
+
+  function renderMarkdown(src, top) {
     const lines = src.replace(/\r\n?/g, "\n").split("\n");
     const n = lines.length;
     const out = [];
     let i = 0;
+    let blockStart = 0;
     const isBlank = (l) => /^\s*$/.test(l);
+    // Top-level blocks carry their source line so the panes can scroll together.
+    const emit = (html) => out.push(top ? html.replace(/^<([a-z][a-z0-9]*)/, `<$1 data-line="${blockStart}"`) : html);
+
+    // YAML front matter: kept verbatim, shown as a quiet metadata block.
+    if (top && /^---\s*$/.test(lines[0] || "")) {
+      let j = 1;
+      while (j < n && !/^(---|\.\.\.)\s*$/.test(lines[j])) j++;
+      if (j < n) {
+        emit(`<pre class="md-frontmatter" contenteditable="false" data-raw="${escapeAttr(lines.slice(0, j + 1).join("\n"))}">${escapeHtml(lines.slice(1, j).join("\n"))}</pre>`);
+        i = j + 1;
+      }
+    }
 
     while (i < n) {
       const line = lines[i];
       if (isBlank(line)) { i++; continue; }
+      blockStart = i;
 
-      const fence = line.match(/^ {0,3}(`{3,}|~{3,})\s*([\w+-]*)\s*$/);
+      const fence = line.match(/^ {0,3}(`{3,}|~{3,})\s*([\w+#-]*)\s*$/);
       if (fence) {
         const fenceChar = fence[1][0], fenceLen = fence[1].length, lang = fence[2];
         i++;
@@ -715,18 +1150,43 @@ Open a .md file, or just type here."></textarea>
           if (closeRe.test(lines[i])) { i++; break; }
           codeLines.push(lines[i]); i++;
         }
-        out.push(`<pre class="md-code"><code${lang ? ` class="lang-${escapeAttr(lang)}"` : ""}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        emit(`<pre class="md-code"><code${lang ? ` class="lang-${escapeAttr(lang)}"` : ""}>${highlightCode(codeLines.join("\n"), lang.toLowerCase())}</code></pre>`);
         continue;
       }
 
       const h = line.match(/^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$/);
       if (h) {
-        out.push(`<h${h[1].length}>${renderInline(h[2])}</h${h[1].length}>`);
+        emit(`<h${h[1].length}>${renderInline(h[2])}</h${h[1].length}>`);
         i++; continue;
       }
 
       if (/^ {0,3}((-\s*){3,}|(\*\s*){3,}|(_\s*){3,})$/.test(line)) {
-        out.push("<hr>"); i++; continue;
+        emit("<hr>"); i++; continue;
+      }
+
+      // Link reference definitions are invisible but kept verbatim for saving.
+      if (REF_DEF_RE.test(line)) {
+        const defs = [];
+        while (i < n && REF_DEF_RE.test(lines[i])) { defs.push(lines[i]); i++; }
+        emit(`<div class="md-refdefs" contenteditable="false" data-raw="${escapeAttr(defs.join("\n"))}"></div>`);
+        continue;
+      }
+
+      // Footnote definitions render where they are written and are saved verbatim.
+      if (FN_DEF_RE.test(line)) {
+        const raw = [];
+        const notes = [];
+        while (i < n && FN_DEF_RE.test(lines[i])) {
+          const m = lines[i].match(FN_DEF_RE);
+          raw.push(lines[i]);
+          const body = [m[2]];
+          i++;
+          while (i < n && /^( {2,}|\t)\S/.test(lines[i]) && !FN_DEF_RE.test(lines[i])) { raw.push(lines[i]); body.push(lines[i].trim()); i++; }
+          notes.push({ id: m[1], body: body.join("\n") });
+        }
+        emit(`<div class="md-footnotes" contenteditable="false" data-raw="${escapeAttr(raw.join("\n"))}">` + notes.map((note) =>
+          `<div class="md-fndef" id="fn-${escapeAttr(note.id)}"><span class="fn-num">${footnoteNumbers.get(note.id) || "?"}.</span> ${renderInline(note.body)} <a class="fn-back" href="#fnref-${escapeAttr(note.id)}" aria-label="${escapeAttr(t("fnBack"))}">↩</a></div>`).join("") + "</div>");
+        continue;
       }
 
       if (/^ {0,3}>/.test(line)) {
@@ -735,7 +1195,7 @@ Open a .md file, or just type here."></textarea>
           bq.push(lines[i].replace(/^ {0,3}>\s?/, ""));
           i++;
         }
-        out.push(`<blockquote>${renderMarkdown(bq.join("\n"))}</blockquote>`);
+        emit(`<blockquote>${renderMarkdown(bq.join("\n"))}</blockquote>`);
         continue;
       }
 
@@ -760,7 +1220,7 @@ Open a .md file, or just type here."></textarea>
           t += "</tr>";
         });
         t += "</tbody></table>";
-        out.push(t);
+        emit(t);
         continue;
       }
 
@@ -770,34 +1230,42 @@ Open a .md file, or just type here."></textarea>
           outlineLines.push(lines[i].trim());
           i++;
         }
-        out.push(`<div class="md-outline">${outlineLines.map((l) => `<div class="md-outline-item">${renderInline(l)}</div>`).join("")}</div>`);
+        emit(`<div class="md-outline">${outlineLines.map((l) => `<div class="md-outline-item">${renderInline(l)}</div>`).join("")}</div>`);
         continue;
       }
 
-      const listMatch = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+      const listMatch = line.match(LIST_ITEM_RE);
       if (listMatch) {
         const ordered = /\d/.test(listMatch[2]);
         const baseIndent = listMatch[1].length;
         const items = [];
         while (i < n) {
-          const m = lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+          const m = lines[i].match(LIST_ITEM_RE);
           if (!m || m[1].length !== baseIndent) break;
           const itemLines = [m[3]];
           i++;
-          while (i < n && !isBlank(lines[i]) && !lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/)) {
+          while (i < n && !isBlank(lines[i]) && !lines[i].match(LIST_ITEM_RE)) {
             itemLines.push(lines[i].replace(/^ {0,4}/, "")); i++;
           }
           while (i < n) {
-            const nm = lines[i].match(/^(\s+)([-*+]|\d+[.)])\s+(.*)$/);
+            const nm = lines[i].match(LIST_ITEM_RE);
             if (nm && nm[1].length > baseIndent) {
               itemLines.push(lines[i]); i++;
-              while (i < n && !isBlank(lines[i])) { itemLines.push(lines[i]); i++; }
+              while (i < n && !isBlank(lines[i])) {
+                const deeper = lines[i].match(LIST_ITEM_RE);
+                if (deeper && deeper[1].length <= baseIndent) break;
+                itemLines.push(lines[i]); i++;
+              }
             } else break;
           }
           items.push(itemLines.join("\n"));
         }
         const tag = ordered ? "ol" : "ul";
-        out.push(`<${tag}>${items.map((it) => `<li>${renderListItemContent(it)}</li>`).join("")}</${tag}>`);
+        const start = ordered ? parseInt(listMatch[2], 10) : 1;
+        emit(`<${tag}${ordered && start !== 1 ? ` start="${start}"` : ""}>${items.map((it) => {
+          const item = renderListItemContent(it);
+          return `<li${item.task ? ' class="task-item"' : ""}>${item.html}</li>`;
+        }).join("")}</${tag}>`);
         continue;
       }
 
@@ -809,10 +1277,12 @@ Open a .md file, or just type here."></textarea>
              !/^ {0,3}(`{3,}|~{3,})/.test(lines[i]) &&
              !/^(\s*)([-*+]|\d+[.)])\s+/.test(lines[i]) &&
              !isOutlineNumberLine(lines[i]) &&
+             !REF_DEF_RE.test(lines[i]) &&
+             !FN_DEF_RE.test(lines[i]) &&
              !/^ {0,3}((-\s*){3,}|(\*\s*){3,}|(_\s*){3,})$/.test(lines[i])) {
         paraLines.push(lines[i]); i++;
       }
-      out.push(`<p>${renderInline(paraLines.join("\n"))}</p>`);
+      emit(`<p>${renderInline(paraLines.join("\n"))}</p>`);
     }
     return out.join("\n");
   }
@@ -833,8 +1303,18 @@ Open a .md file, or just type here."></textarea>
     if (tag === "em" || tag === "i") return `*${inlineToMd(node)}*`;
     if (tag === "del" || tag === "s") return `~~${inlineToMd(node)}~~`;
     if (tag === "code") return `\`${node.textContent}\``;
-    if (tag === "a") return `[${inlineToMd(node)}](${node.getAttribute("href") || ""})`;
-    if (tag === "img") return `![${node.getAttribute("alt") || ""}](${node.getAttribute("src") || ""})`;
+    if (tag === "sup" && node.classList.contains("fnref")) return `[^${node.dataset.fn}]`;
+    if (tag === "input") return "";
+    if (tag === "a") {
+      if (node.dataset.ref !== undefined) return `[${inlineToMd(node)}][${node.dataset.ref}]`;
+      if (node.dataset.auto && node.textContent) return node.textContent;
+      if (node.dataset.angle && node.textContent === node.getAttribute("href")) return `<${node.textContent}>`;
+      return `[${inlineToMd(node)}](${node.dataset.srcUrl || node.getAttribute("href") || ""})`;
+    }
+    if (tag === "img") {
+      if (node.dataset.ref !== undefined) return `![${node.getAttribute("alt") || ""}][${node.dataset.ref}]`;
+      return `![${node.getAttribute("alt") || ""}](${node.dataset.srcUrl || node.getAttribute("src") || ""})`;
+    }
     if (tag === "br") return "\n";
     if (tag === "ul" || tag === "ol") return "\n" + blockNodeToMd(node) + "\n";
     return inlineToMd(node);
@@ -857,6 +1337,8 @@ Open a .md file, or just type here."></textarea>
     const tag = node.tagName.toLowerCase();
     if (/^h[1-6]$/.test(tag)) return "#".repeat(Number(tag[1])) + " " + inlineToMd(node).trim();
     if (tag === "hr") return "---";
+    // Front matter, link definitions, and footnote definitions are saved exactly as written.
+    if (node.hasAttribute("data-raw")) return node.getAttribute("data-raw");
     if (tag === "blockquote") {
       return blockToMd(node).split("\n").map((l) => (l ? "> " + l : ">")).join("\n");
     }
@@ -877,18 +1359,22 @@ Open a .md file, or just type here."></textarea>
     }
     if (tag === "ul" || tag === "ol") {
       const items = Array.from(node.children).filter((c) => c.tagName === "LI");
+      const start = tag === "ol" ? parseInt(node.getAttribute("start") || "1", 10) : 1;
       return items.map((li, idx) => {
         const nested = li.querySelector(":scope > ul, :scope > ol");
+        const marker = tag === "ol" ? `${start + idx}. ` : "- ";
+        const box = li.querySelector(":scope > input.md-task");
+        const task = box ? (box.checked ? "[x] " : "[ ] ") : "";
         let text;
         if (nested) {
           const clone = li.cloneNode(true);
           clone.querySelector(":scope > ul, :scope > ol").remove();
-          const nestedMd = blockNodeToMd(nested).split("\n").map((l) => "  " + l).join("\n");
+          const nestedMd = blockNodeToMd(nested).split("\n").map((l) => " ".repeat(marker.length) + l).join("\n");
           text = inlineToMd(clone).trim() + "\n" + nestedMd;
         } else {
           text = inlineToMd(li).trim();
         }
-        return (tag === "ol" ? `${idx + 1}. ` : "- ") + text;
+        return marker + task + text;
       }).join("\n");
     }
     if (tag === "table") {
@@ -916,12 +1402,27 @@ Open a .md file, or just type here."></textarea>
   const fsSupport = document.getElementById("fsSupport");
 
   const supportsFS = "showOpenFilePicker" in window;
-  fsSupport.textContent = supportsFS ? "native file access" : "download-based save";
+  fsSupport.textContent = supportsFS ? t("fsNative") : t("fsDownload");
 
   let fileHandle = null;
   let fileName = "untitled.md";
   let dirty = false;
   let savedContent = "";
+  const defaultFileFormat = () => ({ encoding: "UTF-8", bom: false, eol: "\n" });
+  let fileFormat = defaultFileFormat();
+  const fileFormatLabel = document.getElementById("fileFormat");
+  function updateFormatLabel() {
+    fileFormatLabel.textContent = `${fileFormat.encoding}${fileFormat.bom ? " BOM" : ""} · ${fileFormat.eol === "\r\n" ? "CRLF" : "LF"}`;
+    fileFormatLabel.title = t("formatTitle") + (fileFormat.encoding !== "UTF-8" ? t("formatWillConvert") : "");
+  }
+  const toast = document.getElementById("toast");
+  let toastTimer = 0;
+  function showNotice(message, ms) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), ms || 3500);
+  }
 
   const WELCOME = `# Welcome to MD·Buddy
 
@@ -933,6 +1434,8 @@ no build step, no server, no external services.
 - Open a \`.md\` file from disk and edit it right here
 - Both panes are editable: type markdown on the left, or edit the rendered text directly on the right — they stay in sync
 - Save back to the same file, or *Save As* a new one
+- [x] Task lists — click a box in the rendered pane to tick it
+- [ ] Footnotes, reference links, and bare links such as https://cantips.com work too[^tip]
 
 ## Try it
 
@@ -957,6 +1460,48 @@ const buddy = "markdown";
 Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
 
 [![CanTips](https://yt3.googleusercontent.com/n8xeDS0L0-qBJcO8F0Z9vEAi7hU-ZTjSzSJS22UVVB_gyFZeE2WlIug8JL6ntC97ubW2AlaKPA=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj)](https://www.youtube.com/@cantips)
+
+[^tip]: **Export** saves the rendered document as HTML, copies it as formatted text, or prints it to PDF.
+`;
+
+  const WELCOME_KO = `# MD·Buddy에 오신 것을 환영합니다
+
+마크다운 파일을 **읽고** **편집하는** 작고 독립적인 도구입니다 —
+빌드도, 서버도, 외부 서비스도 필요 없습니다.
+
+## 할 수 있는 일
+
+- 디스크의 \`.md\` 파일을 열어 바로 편집
+- 두 창 모두 편집 가능: 왼쪽에 마크다운을 입력하거나 오른쪽 렌더링 화면을 직접 고쳐도 서로 맞춰집니다
+- 같은 파일에 다시 저장하거나 *다른 이름으로* 저장
+- [x] 체크리스트 — 렌더링 창에서 상자를 클릭해 체크
+- [ ] 각주, 참조 링크, https://cantips.com 같은 주소 자동 링크도 지원[^tip]
+
+## 써 보기
+
+1. **열기**를 눌러 파일을 고르거나, 이 창에 그냥 입력해 보세요.
+2. \`Ctrl+S\` 저장, \`Ctrl+O\` 열기, \`Ctrl+B\` / \`Ctrl+I\`로 선택한 글자를 굵게·기울임.
+
+> 입력한 내용은 저장하기 전까지 이 탭에만 있습니다.
+
+\`\`\`js
+// 인라인 코드와 코드 블록 모두 렌더링됩니다
+const buddy = "markdown";
+\`\`\`
+
+| 기능 | 상태 |
+| --- | --- |
+| 표 | 완료 |
+| 목록 | 완료 |
+| 링크 | 완료 |
+
+## 예시 몇 가지 더
+
+근의 공식: **x = (−b ± √(b² − 4ac)) / 2a**
+
+[![CanTips](https://yt3.googleusercontent.com/n8xeDS0L0-qBJcO8F0Z9vEAi7hU-ZTjSzSJS22UVVB_gyFZeE2WlIug8JL6ntC97ubW2AlaKPA=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj)](https://www.youtube.com/@cantips)
+
+[^tip]: **내보내기** 메뉴로 렌더링된 문서를 HTML로 저장하거나, 서식 있는 텍스트로 복사하거나, PDF로 인쇄할 수 있습니다.
 `;
 
   function setContent(text, name) {
@@ -965,6 +1510,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     filenameLabel.textContent = fileName;
     savedContent = text;
     dirty = false;
+    updateFormatLabel();
     updateAll();
     activePane = "editor";
     previewRange = null;
@@ -981,13 +1527,13 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   function updateStats() {
     const text = editor.value;
     const words = text.trim().length ? text.trim().split(/\s+/).length : 0;
-    wordCount.textContent = words + (words === 1 ? " word" : " words");
-    charCount.textContent = text.length + (text.length === 1 ? " char" : " chars");
+    wordCount.textContent = t(words === 1 ? "word" : "words", { n: words });
+    charCount.textContent = t(text.length === 1 ? "char" : "chars", { n: text.length });
   }
 
   function updatePreview() {
     const text = editor.value;
-    previewPage.innerHTML = text.trim() ? renderMarkdown(text) : "";
+    previewPage.innerHTML = text.trim() ? renderDocument(text) : "";
   }
 
   function updateAll() {
@@ -1002,8 +1548,13 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   });
 
   /* ---- Editing the rendered pane writes straight back into the markdown source ---- */
+  // Serializes the rendered pane back into the source, keeping a final newline if there was one.
+  function sourceFromPreview() {
+    return htmlToMarkdown(previewPage) + (editor.value.endsWith("\n") ? "\n" : "");
+  }
+
   previewPage.addEventListener("input", (e) => {
-    editor.value = htmlToMarkdown(previewPage);
+    editor.value = sourceFromPreview();
     updateStats();
     markDirty();
     rememberPreviewRange();
@@ -1012,24 +1563,134 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
 
   /* ---- Links (and linked images) still open on click even though the pane is editable ---- */
   previewPage.addEventListener("click", (e) => {
+    // Task list checkboxes toggle straight into the source.
+    const box = e.target.closest("input.md-task");
+    if (box) {
+      e.preventDefault();
+      const checked = !box.hasAttribute("checked");
+      rememberBeforeEdit();
+      box.toggleAttribute("checked", checked);
+      box.checked = checked;
+      setTimeout(() => { box.checked = checked; });
+      editor.value = sourceFromPreview();
+      updateStats(); markDirty(); recordHistory();
+      return;
+    }
     const a = e.target.closest("a");
     if (a && a.href) {
       e.preventDefault();
+      const href = a.getAttribute("href") || "";
+      if (href.startsWith("#")) {
+        // In-page targets such as footnotes.
+        const target = previewPage.querySelector(`[id="${CSS.escape(decodeURIComponent(href.slice(1)))}"]`);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      if (href === "#") return;
       window.open(a.href, "_blank", "noopener,noreferrer");
     }
   });
 
-  /* ---- Tab key inserts spaces instead of moving focus ---- */
-  editor.addEventListener("keydown", (e) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      rememberBeforeEdit();
-      const start = editor.selectionStart, end = editor.selectionEnd;
-      editor.value = editor.value.slice(0, start) + "  " + editor.value.slice(end);
-      editor.selectionStart = editor.selectionEnd = start + 2;
-      updateAll();
-      recordHistory();
+  /* ---- Source editing keys: Tab / Shift+Tab indent, Enter continues lists ---- */
+
+  // Replaces the whole source in one undoable step and keeps the caret/selection.
+  function editSource(value, start, end) {
+    rememberBeforeEdit();
+    editor.value = value;
+    editor.setSelectionRange(start, end === undefined ? start : end);
+    updateAll();
+    recordHistory();
+  }
+
+  function insideFence(text, lineStart) {
+    let open = false;
+    for (const line of text.slice(0, lineStart).split("\n")) if (/^ {0,3}(`{3,}|~{3,})/.test(line)) open = !open;
+    return open;
+  }
+
+  function indentSelection(outdent) {
+    const v = editor.value, s = editor.selectionStart, e = editor.selectionEnd;
+    const lineStart = v.lastIndexOf("\n", s - 1) + 1;
+    const multi = v.slice(s, e).includes("\n");
+    const caretLineEnd = v.indexOf("\n", s) < 0 ? v.length : v.indexOf("\n", s);
+    const isListLine = LIST_ITEM_RE.test(v.slice(lineStart, caretLineEnd));
+    if (!multi && !outdent && !isListLine) {
+      editSource(v.slice(0, s) + "  " + v.slice(e), s + 2);
+      return;
     }
+    const endAdj = e > s && v[e - 1] === "\n" ? e - 1 : e;
+    const lineEnd = v.indexOf("\n", endAdj) < 0 ? v.length : v.indexOf("\n", endAdj);
+    const lines = v.slice(lineStart, lineEnd).split("\n");
+    let firstDelta = 0, total = 0;
+    const result = lines.map((line, idx) => {
+      let delta;
+      if (outdent) {
+        const m = line.match(/^( {1,2}|\t)/);
+        delta = m ? -m[0].length : 0;
+        line = line.slice(-delta);
+      } else if (!line.length && lines.length > 1) {
+        delta = 0;
+      } else {
+        delta = 2;
+        line = "  " + line;
+      }
+      if (idx === 0) firstDelta = delta;
+      total += delta;
+      return line;
+    }).join("\n");
+    const newValue = v.slice(0, lineStart) + result + v.slice(lineEnd);
+    const newStart = Math.max(lineStart, s + firstDelta);
+    editSource(newValue, newStart, multi ? e + total : Math.max(lineStart, e + firstDelta));
+  }
+
+  // Enter in a list item or quote starts the next one; Enter on an empty one ends it.
+  function continueBlock() {
+    const v = editor.value, s = editor.selectionStart;
+    if (s !== editor.selectionEnd) return false;
+    const lineStart = v.lastIndexOf("\n", s - 1) + 1;
+    if (insideFence(v, lineStart)) return false;
+    const before = v.slice(lineStart, s);
+    const lineEnd = v.indexOf("\n", s) < 0 ? v.length : v.indexOf("\n", s);
+    const after = v.slice(s, lineEnd);
+    const item = before.match(/^((?:\s*>\s?)*)(\s*)([-*+]|\d+[.)])(\s+)(\[[ xX]\]\s+)?/);
+    if (item) {
+      if (!(before.slice(item[0].length) + after).trim()) {
+        const keep = item[1].replace(/\s+$/, "");
+        editSource(v.slice(0, lineStart) + keep + v.slice(lineEnd), lineStart + keep.length);
+        return true;
+      }
+      let marker = item[3];
+      if (/\d/.test(marker)) marker = (parseInt(marker, 10) + 1) + marker.slice(-1);
+      const next = "\n" + item[1] + item[2] + marker + item[4] + (item[5] ? "[ ] " : "");
+      editSource(v.slice(0, s) + next + after.replace(/^\s+/, "") + v.slice(lineEnd), s + next.length);
+      return true;
+    }
+    const quote = before.match(/^(\s*>\s?)+/);
+    if (quote) {
+      if (!(before.slice(quote[0].length) + after).trim()) {
+        editSource(v.slice(0, lineStart) + v.slice(lineEnd), lineStart);
+        return true;
+      }
+      const next = "\n" + quote[0];
+      editSource(v.slice(0, s) + next + v.slice(s), s + next.length);
+      return true;
+    }
+    return false;
+  }
+
+  // Esc, then Tab, moves focus out of the editor instead of indenting (keyboard access).
+  let tabLeavesEditor = false;
+  editor.addEventListener("keydown", (e) => {
+    if (e.isComposing || e.keyCode === 229) return;
+    const plain = !e.ctrlKey && !e.altKey && !e.metaKey;
+    if (e.key === "Tab" && plain) {
+      if (tabLeavesEditor) { tabLeavesEditor = false; return; }
+      e.preventDefault();
+      indentSelection(e.shiftKey);
+    } else if (e.key === "Enter" && plain && !e.shiftKey) {
+      if (continueBlock()) e.preventDefault();
+    }
+    tabLeavesEditor = e.key === "Escape";
   });
 
   /* ---- Shared editing commands and history for both panes ---- */
@@ -1077,7 +1738,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   function updateTools() {
     toolbar.querySelector('[data-command="undo"]').disabled = historyIndex <= 0;
     toolbar.querySelector('[data-command="redo"]').disabled = historyIndex >= history.length - 1;
-    document.getElementById("editTarget").textContent = "Editing: " + (activePane === "preview" ? "Rendered" : "Manuscript");
+    document.getElementById("editTarget").textContent = t("editing", { pane: t(activePane === "preview" ? "rendered" : "manuscript") });
   }
   function rememberBeforeEdit() {
     if (historyIndex >= 0) history[historyIndex] = captureState();
@@ -1133,8 +1794,9 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     if (activePane === "editor") return { text: editor.value, start: editor.selectionStart, end: editor.selectionEnd, pane: activePane };
     rememberPreviewRange();
     const clone = previewPage.cloneNode(true);
+    const finalNewline = editor.value.endsWith("\n") ? "\n" : "";
     if (!previewRange || !previewPage.contains(previewRange.startContainer) || !previewPage.textContent.trim()) {
-      const text = htmlToMarkdown(clone);
+      const text = htmlToMarkdown(clone) + finalNewline;
       return { text, start: text.length, end: text.length, pane: activePane };
     }
     const range = document.createRange();
@@ -1161,14 +1823,14 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     range.setStart(...startPoint); range.setEnd(...endPoint);
     const end = range.cloneRange(); end.collapse(false); end.insertNode(document.createTextNode(selectionEndToken));
     range.collapse(true); range.insertNode(document.createTextNode(selectionStartToken));
-    const marked = htmlToMarkdown(clone);
+    const marked = htmlToMarkdown(clone) + finalNewline;
     const startOffset = marked.indexOf(selectionStartToken);
     const endOffset = marked.indexOf(selectionEndToken) - selectionStartToken.length;
     return { text: marked.replace(selectionStartToken, "").replace(selectionEndToken, ""), start: startOffset, end: endOffset, pane: activePane };
   }
   function restorePreviewSelection(text, start, end) {
     const marked = text.slice(0, start) + selectionStartToken + text.slice(start, end) + selectionEndToken + text.slice(end);
-    previewPage.innerHTML = renderMarkdown(marked);
+    previewPage.innerHTML = renderDocument(marked);
     const walker = document.createTreeWalker(previewPage, NodeFilter.SHOW_TEXT);
     let node, startNode, endNode, startOffset, endOffset;
     while ((node = walker.nextNode())) {
@@ -1234,7 +1896,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     const nextBreak = context.text.indexOf("\n", selectionEnd);
     const to = nextBreak < 0 ? context.text.length : nextBreak;
     const lines = context.text.slice(from, to).split("\n");
-    const patterns = { bullet: /^([-*+] )/, ordered: /^(\d+[.)] )/, quote: /^(> ?)/ };
+    const patterns = { bullet: /^([-*+] )(?!\[[ xX]\] )/, ordered: /^(\d+[.)] )/, quote: /^(> ?)/, task: /^([-*+] \[[ xX]\] )/ };
     const pattern = command === "heading" ? /^#{1,6}\s+/ : patterns[command];
     const remove = command !== "heading" && lines.filter((line) => line.trim()).every((line) => pattern.test(line));
     const prefixes = [];
@@ -1244,11 +1906,11 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
       itemNumber++;
       let body = line;
       if (command === "heading") body = body.replace(pattern, "");
-      else if (command === "bullet" || command === "ordered") body = body.replace(/^([-*+] |\d+[.)] )/, "");
+      else if (command === "bullet" || command === "ordered" || command === "task") body = body.replace(/^([-*+] (?:\[[ xX]\] )?|\d+[.)] )/, "");
       else body = body.replace(pattern, "");
-      const prefix = remove ? "" : command === "heading" ? "#".repeat(level) + (level ? " " : "") : command === "bullet" ? "- " : command === "ordered" ? itemNumber + ". " : "> ";
+      const prefix = remove ? "" : command === "heading" ? "#".repeat(level) + (level ? " " : "") : command === "bullet" ? "- " : command === "task" ? "- [ ] " : command === "ordered" ? itemNumber + ". " : "> ";
       prefixes.push(prefix);
-      return prefix + (body || (lines.length === 1 ? "Text" : ""));
+      return prefix + (body || (lines.length === 1 ? t("linePlaceholder") : ""));
     }).join("\n");
     applyEdit(context, result, from, to, prefixes[0].length, result.length);
   }
@@ -1267,18 +1929,18 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     if (command === "undo" || command === "redo") { moveHistory(command === "undo" ? -1 : 1); return; }
     const context = editingContext();
     if (context.start < 0 || context.end < context.start) return;
-    if (command === "bold") wrapText(context, "**", "text");
-    else if (command === "italic") wrapText(context, "*", "text");
-    else if (command === "strike") wrapText(context, "~~", "text");
+    if (command === "bold") wrapText(context, "**", t("textPlaceholder"));
+    else if (command === "italic") wrapText(context, "*", t("textPlaceholder"));
+    else if (command === "strike") wrapText(context, "~~", t("textPlaceholder"));
     else if (command === "code") wrapText(context, "`", "code");
-    else if (["bullet", "ordered", "quote"].includes(command)) formatLines(context, command);
-    else if (command === "table") insertBlock(context, "| Column 1 | Column 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |");
+    else if (["bullet", "ordered", "quote", "task"].includes(command)) formatLines(context, command);
+    else if (command === "table") insertBlock(context, t("tableTemplate"));
     else if (command === "codeblock") insertBlock(context, "```\n" + (context.text.slice(context.start, context.end) || "code") + "\n```");
     else if (command === "link" || command === "image") {
       pendingInsert = { context, command };
-      document.getElementById("insertDialogTitle").textContent = command === "image" ? "Insert image" : "Insert link";
-      document.getElementById("insertLabelText").textContent = command === "image" ? "Image description" : "Link text";
-      document.getElementById("insertText").value = context.text.slice(context.start, context.end) || (command === "image" ? "Image" : "Link");
+      document.getElementById("insertDialogTitle").textContent = t(command === "image" ? "imageDialog" : "linkDialog");
+      document.getElementById("insertLabelText").textContent = t(command === "image" ? "imageText" : "linkText");
+      document.getElementById("insertText").value = context.text.slice(context.start, context.end) || t(command === "image" ? "imageDefault" : "linkDefault");
       document.getElementById("insertUrl").value = "";
       document.getElementById("insertUrl").setCustomValidity("");
       insertDialog.showModal();
@@ -1317,7 +1979,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     const url = urlInput.value.trim();
     const { context, command } = pendingInsert;
     if (!/^(https?:\/\/|mailto:)/i.test(url) || (command === "image" && !/^https?:\/\//i.test(url))) {
-      urlInput.setCustomValidity(command === "image" ? "Use an HTTP or HTTPS image URL." : "Use an HTTP, HTTPS, or mailto URL.");
+      urlInput.setCustomValidity(t(command === "image" ? "imageUrlInvalid" : "urlInvalid"));
       urlInput.reportValidity(); return;
     }
     const label = document.getElementById("insertText").value.replace(/[\r\n]+/g, " ").replace(/([\\\[\]])/g, "\\$1");
@@ -1331,7 +1993,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   /* ---------------- File operations ---------------- */
 
   function confirmDiscard() {
-    return !dirty || confirm("Discard unsaved changes?");
+    return !dirty || confirm(t("discard"));
   }
 
   const fileTypes = [{ description: "Markdown", accept: { "text/markdown": [".md", ".markdown", ".txt"] } }];
@@ -1339,10 +2001,47 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   // Shared by Open, drag-and-drop, and OS file launch (PWA file handling).
   // Keeping the handle lets Save write straight back to the same file.
   async function openFromHandle(handle) {
-    const file = await handle.getFile();
-    const text = await file.text();
-    fileHandle = handle;
-    setContent(text, file.name);
+    await loadFile(await handle.getFile(), handle);
+  }
+
+  // Reads a file without damaging it: detects UTF-8 (with or without BOM), UTF-16,
+  // or legacy Korean EUC-KR/CP949, and remembers CRLF vs LF line endings for saving.
+  function decodeBytes(buffer) {
+    const bytes = new Uint8Array(buffer);
+    if (bytes[0] === 0xFF && bytes[1] === 0xFE) return { text: new TextDecoder("utf-16le").decode(bytes.subarray(2)), encoding: "UTF-16", bom: false };
+    if (bytes[0] === 0xFE && bytes[1] === 0xFF) return { text: new TextDecoder("utf-16be").decode(bytes.subarray(2)), encoding: "UTF-16", bom: false };
+    const bom = bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF;
+    try {
+      return { text: new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(bom ? 3 : 0)), encoding: "UTF-8", bom };
+    } catch (e) {
+      return { text: new TextDecoder("euc-kr").decode(bytes), encoding: "EUC-KR", bom: false };
+    }
+  }
+
+  async function loadFile(file, handle) {
+    const decoded = decodeBytes(await file.arrayBuffer());
+    const crlf = (decoded.text.match(/\r\n/g) || []).length;
+    const lf = (decoded.text.match(/(^|[^\r])\n/g) || []).length;
+    fileHandle = handle || null;
+    fileFormat = { encoding: decoded.encoding, bom: decoded.bom, eol: crlf > lf ? "\r\n" : "\n" };
+    setContent(decoded.text.replace(/\r\n?/g, "\n"), file.name);
+    if (decoded.encoding !== "UTF-8") showNotice(t("openedAs", { enc: decoded.encoding }), 7000);
+  }
+
+  // Text exactly as it should be written to disk (original line endings and BOM).
+  function textForSave() {
+    const text = fileFormat.eol === "\r\n" ? editor.value.replace(/\n/g, "\r\n") : editor.value;
+    return (fileFormat.bom ? "﻿" : "") + text;
+  }
+
+  function confirmEncodingChange() {
+    if (fileFormat.encoding === "UTF-8") return true;
+    return confirm(t("confirmUtf8", { enc: fileFormat.encoding }));
+  }
+
+  function markSavedAsUtf8() {
+    fileFormat.encoding = "UTF-8";
+    updateFormatLabel();
   }
 
   async function doOpen() {
@@ -1352,7 +2051,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
         const [handle] = await window.showOpenFilePicker({ types: fileTypes });
         await openFromHandle(handle);
       } catch (e) {
-        if (e && e.name !== "AbortError") alert("Could not open file: " + e.message);
+        if (e && e.name !== "AbortError") alert(t("openFailed", { msg: e.message }));
       }
     } else {
       document.getElementById("fileInput").click();
@@ -1362,15 +2061,13 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   document.getElementById("fileInput").addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    fileHandle = null;
-    const reader = new FileReader();
-    reader.onload = () => setContent(reader.result, file.name);
-    reader.readAsText(file);
+    loadFile(file, null);
     e.target.value = "";
   });
 
   function downloadFallback() {
-    const blob = new Blob([editor.value], { type: "text/markdown" });
+    if (!confirmEncodingChange()) return;
+    const blob = new Blob([textForSave()], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -1380,19 +2077,22 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     a.remove();
     URL.revokeObjectURL(url);
     savedContent = editor.value;
+    markSavedAsUtf8();
     markDirty();
   }
 
   async function doSave(forceSaveAs) {
     if (supportsFS && fileHandle && !forceSaveAs) {
+      if (!confirmEncodingChange()) return;
       try {
         const writable = await fileHandle.createWritable();
-        await writable.write(editor.value);
+        await writable.write(textForSave());
         await writable.close();
         savedContent = editor.value;
+        markSavedAsUtf8();
         markDirty();
       } catch (e) {
-        alert("Could not save file: " + e.message);
+        alert(t("saveFailed", { msg: e.message }));
       }
       return;
     }
@@ -1401,14 +2101,15 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
         const handle = await window.showSaveFilePicker({ suggestedName: fileName, types: fileTypes });
         fileHandle = handle;
         const writable = await handle.createWritable();
-        await writable.write(editor.value);
+        await writable.write(textForSave());
         await writable.close();
         fileName = handle.name;
         filenameLabel.textContent = fileName;
         savedContent = editor.value;
+        markSavedAsUtf8();
         markDirty();
       } catch (e) {
-        if (e && e.name !== "AbortError") alert("Could not save file: " + e.message);
+        if (e && e.name !== "AbortError") alert(t("saveFailed", { msg: e.message }));
       }
       return;
     }
@@ -1418,6 +2119,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   function doNew() {
     if (!confirmDiscard()) return;
     fileHandle = null;
+    fileFormat = defaultFileFormat();
     setContent("", "untitled.md");
     editor.focus();
   }
@@ -1470,11 +2172,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
       }
     }
 
-    fileHandle = null;
-    const file = files[0];
-    const reader = new FileReader();
-    reader.onload = () => setContent(reader.result, file.name);
-    reader.readAsText(file);
+    loadFile(files[0], null);
   });
 
   window.addEventListener("beforeunload", (e) => {
@@ -1491,9 +2189,16 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     } else if (mod && editing && ["b", "i", "k"].includes(e.key.toLowerCase())) {
       e.preventDefault();
       runCommand({ b: "bold", i: "italic", k: "link" }[e.key.toLowerCase()]);
-    } else if (e.key === "Escape" && insertMenu.open) {
-      insertMenu.open = false;
-      insertMenu.querySelector("summary").focus();
+    } else if (mod && !e.altKey && (e.key.toLowerCase() === "f" || e.key.toLowerCase() === "h") && (editing || findBar.contains(document.activeElement) || document.activeElement === document.body)) {
+      e.preventDefault();
+      openFind(e.key.toLowerCase() === "h");
+    } else if (e.key === "F3" && !findBar.hidden) {
+      e.preventDefault();
+      findStep(e.shiftKey ? -1 : 1);
+    } else if (e.key === "Escape" && (insertMenu.open || outlineMenu.open || exportMenu.open)) {
+      const menu = insertMenu.open ? insertMenu : outlineMenu.open ? outlineMenu : exportMenu;
+      menu.open = false;
+      menu.querySelector("summary").focus();
     } else if (mod && e.key.toLowerCase() === "s") {
       e.preventDefault();
       doSave(e.shiftKey);
@@ -1541,6 +2246,313 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     divider.releasePointerCapture(e.pointerId);
   });
 
+  /* ---------------- Source line positions (for scroll sync and find) ---------------- */
+
+  // A hidden copy of the textarea measures where each (wrapped) source line starts.
+  const mirror = document.createElement("div");
+  mirror.setAttribute("aria-hidden", "true");
+  mirror.style.cssText = "position:absolute;visibility:hidden;left:-9999px;top:0;white-space:pre-wrap;overflow-wrap:break-word;word-wrap:break-word;";
+  document.body.appendChild(mirror);
+  let lineTopsCache = null;
+  function lineTops() {
+    if (lineTopsCache) return lineTopsCache;
+    const cs = getComputedStyle(editor);
+    for (const prop of ["fontFamily", "fontSize", "lineHeight", "letterSpacing", "tabSize", "paddingLeft", "paddingRight", "paddingTop", "boxSizing"]) mirror.style[prop] = cs[prop];
+    mirror.style.width = editor.clientWidth + "px";
+    const lines = editor.value.split("\n");
+    mirror.innerHTML = lines.map((l) => `<div>${l ? escapeHtml(l) : "&#8203;"}</div>`).join("");
+    lineTopsCache = Array.from(mirror.children, (el) => el.offsetTop);
+    mirror.innerHTML = "";
+    return lineTopsCache;
+  }
+  editor.addEventListener("input", () => { lineTopsCache = null; });
+  window.addEventListener("resize", () => { lineTopsCache = null; });
+
+  function lineIndexAt(offset) {
+    return editor.value.slice(0, offset).split("\n").length - 1;
+  }
+  function scrollEditorToOffset(offset) {
+    const tops = lineTops();
+    editor.scrollTop = Math.max(0, (tops[lineIndexAt(offset)] || 0) - editor.clientHeight / 3);
+  }
+
+  /* ---------------- Scroll the two panes together ---------------- */
+
+  const btnSync = document.getElementById("btnSync");
+  let syncScroll = true;
+  try { syncScroll = localStorage.getItem("mdbuddy-sync") !== "off"; } catch (e) {}
+  btnSync.setAttribute("aria-pressed", String(syncScroll));
+  btnSync.addEventListener("click", () => {
+    syncScroll = !syncScroll;
+    btnSync.setAttribute("aria-pressed", String(syncScroll));
+    try { localStorage.setItem("mdbuddy-sync", syncScroll ? "on" : "off"); } catch (e) {}
+    if (syncScroll) syncFrom(editor);
+  });
+
+  // Pairs of [source line top in the editor, block top in the preview].
+  function syncAnchors() {
+    const tops = lineTops();
+    const scrollerTop = previewScroller.getBoundingClientRect().top - previewScroller.scrollTop;
+    const anchors = [[0, 0]];
+    previewPage.querySelectorAll(":scope > [data-line]").forEach((el) => {
+      const line = Number(el.dataset.line);
+      if (tops[line] !== undefined) anchors.push([tops[line], el.getBoundingClientRect().top - scrollerTop]);
+    });
+    const end = [editor.scrollHeight - editor.clientHeight, previewScroller.scrollHeight - previewScroller.clientHeight];
+    // Keep the anchors strictly increasing on both sides so the mapping stays monotonic.
+    const kept = [];
+    anchors.forEach((a) => {
+      const prev = kept[kept.length - 1];
+      if (a[0] < end[0] && a[1] < end[1] && (!prev || (a[0] > prev[0] && a[1] > prev[1]))) kept.push(a);
+    });
+    kept.push(end);
+    return kept;
+  }
+  function mapScroll(value, anchors, from, to) {
+    for (let k = 0; k < anchors.length - 1; k++) {
+      const a = anchors[k], b = anchors[k + 1];
+      if (value >= a[from] && value <= b[from]) {
+        const span = b[from] - a[from];
+        return a[to] + (span > 0 ? (value - a[from]) / span : 0) * (b[to] - a[to]);
+      }
+    }
+    return anchors[anchors.length - 1][to];
+  }
+  let syncLock = null, syncLockUntil = 0;
+  function syncFrom(source) {
+    if (!syncScroll || stage.classList.contains("reading")) return;
+    const target = source === editor ? previewScroller : editor;
+    const now = performance.now();
+    if (syncLock === target && now < syncLockUntil) return;
+    const anchors = syncAnchors();
+    const value = source === editor ? mapScroll(editor.scrollTop, anchors, 0, 1) : mapScroll(previewScroller.scrollTop, anchors, 1, 0);
+    syncLock = source;
+    syncLockUntil = now + 120;
+    target.scrollTop = value;
+  }
+  editor.addEventListener("scroll", () => syncFrom(editor), { passive: true });
+  previewScroller.addEventListener("scroll", () => syncFrom(previewScroller), { passive: true });
+
+  /* ---------------- Find and replace (in the manuscript) ---------------- */
+
+  const findBar = document.getElementById("findBar");
+  const findInput = document.getElementById("findInput");
+  const replaceInput = document.getElementById("replaceInput");
+  const findCase = document.getElementById("findCase");
+  const findCount = document.getElementById("findCount");
+
+  function findMatches() {
+    const needle = findInput.value;
+    if (!needle) return [];
+    const hay = findCase.checked ? editor.value : editor.value.toLowerCase();
+    const n = findCase.checked ? needle : needle.toLowerCase();
+    const found = [];
+    for (let at = hay.indexOf(n); at >= 0; at = hay.indexOf(n, at + n.length)) found.push(at);
+    return found;
+  }
+  function updateFindCount(current) {
+    const count = findMatches().length;
+    findCount.textContent = !findInput.value ? "" : count ? (current ? t("foundOf", { i: current, n: count }) : t("foundCount", { n: count })) : t("noResults");
+  }
+  function selectMatch(at, keepFocus) {
+    editor.focus({ preventScroll: true });
+    editor.setSelectionRange(at, at + findInput.value.length);
+    scrollEditorToOffset(at);
+    activePane = "editor"; updateTools();
+    if (keepFocus) keepFocus.focus({ preventScroll: true });
+  }
+  function findStep(direction, keepFocus) {
+    const found = findMatches();
+    if (!found.length) { updateFindCount(); return; }
+    const from = direction > 0 ? editor.selectionEnd : editor.selectionStart;
+    let idx = direction > 0 ? found.findIndex((at) => at >= from) : found.map((at) => at < from).lastIndexOf(true);
+    if (idx < 0) idx = direction > 0 ? 0 : found.length - 1;
+    selectMatch(found[idx], keepFocus);
+    updateFindCount(idx + 1);
+  }
+  function selectionIsMatch() {
+    const sel = editor.value.slice(editor.selectionStart, editor.selectionEnd);
+    return !!findInput.value && (findCase.checked ? sel === findInput.value : sel.toLowerCase() === findInput.value.toLowerCase());
+  }
+  function replaceCurrent() {
+    if (!selectionIsMatch()) { findStep(1, findInput); return; }
+    const s = editor.selectionStart, e = editor.selectionEnd, rep = replaceInput.value;
+    editSource(editor.value.slice(0, s) + rep + editor.value.slice(e), s + rep.length);
+    findStep(1, replaceInput);
+  }
+  function replaceAll() {
+    const found = findMatches();
+    if (!found.length) { updateFindCount(); return; }
+    const len = findInput.value.length, rep = replaceInput.value;
+    let out = "", last = 0;
+    found.forEach((at) => { out += editor.value.slice(last, at) + rep; last = at + len; });
+    out += editor.value.slice(last);
+    editSource(out, 0);
+    updateFindCount();
+    showNotice(found.length === 1 ? t("replacedOne") : t("replaced", { n: found.length }));
+  }
+  function openFind(withReplace) {
+    findBar.hidden = false;
+    const sel = activePane === "editor" ? editor.value.slice(editor.selectionStart, editor.selectionEnd) : String(window.getSelection());
+    if (sel && !sel.includes("\n")) findInput.value = sel;
+    const field = withReplace && findInput.value ? replaceInput : findInput;
+    field.focus(); field.select();
+    updateFindCount();
+  }
+  function closeFind() {
+    findBar.hidden = true;
+    editor.focus({ preventScroll: true });
+  }
+  document.getElementById("btnFind").addEventListener("click", () => (findBar.hidden ? openFind(false) : closeFind()));
+  findInput.addEventListener("input", () => updateFindCount());
+  findCase.addEventListener("change", () => updateFindCount());
+  document.getElementById("findNext").addEventListener("click", () => findStep(1, findInput));
+  document.getElementById("findPrev").addEventListener("click", () => findStep(-1, findInput));
+  document.getElementById("replaceOne").addEventListener("click", replaceCurrent);
+  document.getElementById("replaceAll").addEventListener("click", replaceAll);
+  document.getElementById("findClose").addEventListener("click", closeFind);
+  findBar.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); closeFind(); }
+    else if (e.key === "Enter" && e.target === findInput) { e.preventDefault(); findStep(e.shiftKey ? -1 : 1, findInput); }
+    else if (e.key === "Enter" && e.target === replaceInput) { e.preventDefault(); replaceCurrent(); }
+  });
+
+  /* ---------------- Outline (jump to a heading) ---------------- */
+
+  const outlineMenu = document.getElementById("outlineMenu");
+  const outlineList = document.getElementById("outlineList");
+  outlineMenu.addEventListener("toggle", () => {
+    if (!outlineMenu.open) return;
+    const headings = Array.from(previewPage.querySelectorAll("h1, h2, h3, h4, h5, h6"));
+    outlineList.textContent = "";
+    if (!headings.length) {
+      const empty = document.createElement("p");
+      empty.className = "outline-empty";
+      empty.textContent = t("outlineEmpty");
+      outlineList.appendChild(empty);
+    }
+    headings.forEach((h) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.textContent = h.textContent.trim() || t("untitled");
+      item.style.paddingLeft = 8 + (Number(h.tagName[1]) - 1) * 14 + "px";
+      item.addEventListener("click", () => {
+        outlineMenu.open = false;
+        h.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (h.dataset.line !== undefined) {
+          const lines = editor.value.split("\n").slice(0, Number(h.dataset.line));
+          const offset = lines.reduce((sum, l) => sum + l.length + 1, 0);
+          editor.setSelectionRange(offset, offset);
+          const prev = syncScroll; syncScroll = false;
+          scrollEditorToOffset(offset);
+          setTimeout(() => { syncScroll = prev; }, 600);
+        }
+      });
+      outlineList.appendChild(item);
+    });
+  });
+
+  /* ---------------- Reading mode (rendered pane only) ---------------- */
+
+  const btnReading = document.getElementById("btnReading");
+  function setReading(on) {
+    stage.classList.toggle("reading", on);
+    btnReading.setAttribute("aria-pressed", String(on));
+    if (on) { activePane = "preview"; updateTools(); }
+    lineTopsCache = null;
+  }
+  btnReading.addEventListener("click", () => setReading(!stage.classList.contains("reading")));
+
+  /* ---------------- Export, copy, print ---------------- */
+
+  const exportMenu = document.getElementById("exportMenu");
+
+  // Clean, standalone copy of the rendered document (no editing hooks or hidden source blocks).
+  function exportBodyHtml() {
+    const clone = previewPage.cloneNode(true);
+    clone.querySelectorAll(".md-refdefs, .md-frontmatter").forEach((el) => el.remove());
+    clone.querySelectorAll("[contenteditable]").forEach((el) => el.removeAttribute("contenteditable"));
+    clone.querySelectorAll("[data-line], [data-raw], [data-src-url]").forEach((el) => { el.removeAttribute("data-line"); el.removeAttribute("data-raw"); el.removeAttribute("data-src-url"); });
+    clone.querySelectorAll("input.md-task").forEach((el) => { el.setAttribute("disabled", ""); el.removeAttribute("tabindex"); });
+    return clone.innerHTML;
+  }
+  function documentTitle() {
+    const h1 = previewPage.querySelector("h1");
+    return (h1 && h1.textContent.trim()) || fileName.replace(/\.(md|markdown|txt)$/i, "");
+  }
+  const EXPORT_CSS = `
+    body { margin: 0; background: #faf5e9; color: #2a2118; }
+    main { max-width: 68ch; margin: 0 auto; padding: 48px 24px 80px; font: 16.5px/1.75 Georgia, "Iowan Old Style", "Times New Roman", serif; word-break: keep-all; overflow-wrap: break-word; }
+    h1, h2, h3, h4, h5, h6 { font-family: Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif; line-height: 1.25; margin: 1.4em 0 .5em; }
+    h1 { font-size: 2em; border-bottom: 1px solid #d3c19c; padding-bottom: .25em; }
+    h2 { font-size: 1.55em; border-bottom: 1px solid #d3c19c; padding-bottom: .2em; }
+    h3 { font-size: 1.25em; color: #a83e26; }
+    main > :first-child { margin-top: 0; }
+    a { color: #a83e26; text-underline-offset: 3px; }
+    em { color: #6b5d47; } del { color: #9c8d70; }
+    blockquote { margin: 1em 0; padding: .2em 1.2em; border-left: 3px solid #a83e26; background: #e8ddc3; color: #6b5d47; border-radius: 0 4px 4px 0; }
+    ul, ol { padding-left: 1.5em; } li { margin: .3em 0; } li.task-item { list-style: none; margin-left: -1.3em; }
+    hr { border: none; border-top: 1px solid #b8a37a; margin: 2em 0; }
+    code { font-family: "Cascadia Code", Consolas, "SF Mono", Menlo, monospace; background: #e6d9b8; padding: .1em .4em; border-radius: 4px; font-size: .88em; }
+    pre { background: #e6d9b8; border: 1px solid #d3c19c; border-radius: 8px; padding: 16px 18px; overflow: auto; }
+    pre code { display: block; background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+    .hl-kw { color: #8a3a1f; font-weight: 600; } .hl-str { color: #4b6a4f; } .hl-com { color: #9c8d70; font-style: italic; } .hl-num { color: #7a4e9c; }
+    img { max-width: 100%; border-radius: 6px; vertical-align: bottom; }
+    table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: .95em; }
+    th, td { border: 1px solid #d3c19c; padding: 8px 12px; text-align: left; }
+    th { background: #e8ddc3; }
+    .md-outline-item { margin: .28em 0; }
+    sup.fnref a { text-decoration: none; }
+    .md-footnotes { margin: 1.4em 0; padding-top: .8em; border-top: 1px solid #d3c19c; font-size: .88em; color: #6b5d47; }
+    .md-fndef { margin: .3em 0; } .fn-back { text-decoration: none; }
+    @media print { body { background: #fff; } main { padding: 0; max-width: none; } pre, table, img, blockquote { break-inside: avoid; } }`;
+  function exportDocument() {
+    return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>${escapeHtml(documentTitle())}</title>\n<style>${EXPORT_CSS}\n</style>\n</head>\n<body>\n<main>\n${exportBodyHtml()}\n</main>\n</body>\n</html>\n`;
+  }
+  async function exportHtml() {
+    exportMenu.open = false;
+    const html = exportDocument();
+    const name = fileName.replace(/\.(md|markdown|txt)$/i, "") + ".html";
+    if ("showSaveFilePicker" in window) {
+      try {
+        const handle = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: "Web page", accept: { "text/html": [".html", ".htm"] } }] });
+        const writable = await handle.createWritable();
+        await writable.write(html);
+        await writable.close();
+        showNotice(t("exported", { name: handle.name }));
+      } catch (e) {
+        if (e && e.name !== "AbortError") alert(t("exportFailed", { msg: e.message }));
+      }
+      return;
+    }
+    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+  async function copyAsHtml() {
+    exportMenu.open = false;
+    const html = exportBodyHtml();
+    const text = previewPage.innerText;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([html], { type: "text/html" }),
+        "text/plain": new Blob([text], { type: "text/plain" }),
+      })]);
+      showNotice(t("copied"));
+    } catch (e) {
+      showNotice(t("copyFailed"));
+    }
+  }
+  document.getElementById("btnExportHtml").addEventListener("click", exportHtml);
+  document.getElementById("btnCopyHtml").addEventListener("click", copyAsHtml);
+  document.getElementById("btnPrint").addEventListener("click", () => { exportMenu.open = false; window.print(); });
+  document.addEventListener("pointerdown", (e) => {
+    if (!exportMenu.contains(e.target)) exportMenu.open = false;
+    if (!outlineMenu.contains(e.target)) outlineMenu.open = false;
+  });
+
   /* ---------------- Theme ---------------- */
 
   const themeToggle = document.getElementById("themeToggle");
@@ -1568,10 +2580,53 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
     try { localStorage.setItem("mdbuddy-theme", storedTheme); } catch (e) {}
   });
 
+  /* ---------------- Language switch ---------------- */
+
+  const langToggle = document.getElementById("langToggle");
+  const WELCOME_TEXT = { en: WELCOME, ko: WELCOME_KO };
+
+  function applyLanguage(next) {
+    lang = next;
+    if (lang === "ko") document.documentElement.lang = "ko";
+    else document.documentElement.removeAttribute("lang");
+    I18N_BINDINGS.forEach(([selector, what, key]) => {
+      document.querySelectorAll(selector).forEach((el) => {
+        if (what === "text") el.textContent = t(key);
+        else el.setAttribute(what, t(key));
+      });
+    });
+    const options = headingTool.options;
+    options[0].textContent = t("headingPick");
+    options[1].textContent = t("paragraph");
+    for (let level = 1; level <= 6; level++) options[level + 1].textContent = t("headingN", { n: level });
+    document.querySelectorAll(".statusbar .social a").forEach((a) => {
+      if (!a.dataset.site) a.dataset.site = a.title;
+      const name = a.dataset.site === "Blog" ? t("blog") : a.dataset.site;
+      a.title = name;
+      a.setAttribute("aria-label", t("newWindow", { name }));
+    });
+    document.documentElement.style.setProperty("--label-front-matter", JSON.stringify(t("frontMatter")));
+    fsSupport.textContent = supportsFS ? t("fsNative") : t("fsDownload");
+    updateStats();
+    updateTools();
+    updateFormatLabel();
+    if (!findBar.hidden) updateFindCount();
+    // The untouched welcome document follows the interface language.
+    const other = lang === "ko" ? "en" : "ko";
+    if (!dirty && !fileHandle && editor.value === WELCOME_TEXT[other]) setContent(WELCOME_TEXT[lang], fileName);
+    else if (previewPage.querySelector(".fn-back")) updatePreview();
+  }
+
+  langToggle.addEventListener("click", () => {
+    applyLanguage(lang === "ko" ? "en" : "ko");
+    try { localStorage.setItem("mdbuddy-lang", lang); } catch (e) {}
+  });
+
   /* ---------------- Init ---------------- */
 
   document.getElementById("creditYear").textContent = new Date().getFullYear();
-  setContent(WELCOME, "untitled.md");
+  setContent(WELCOME_TEXT[lang], "untitled.md");
+  applyLanguage(lang);
 
   /* ---------------- Installable app (PWA) ----------------
      Everything below is optional: opened as a single file (file://) or in a
@@ -1585,7 +2640,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
       try {
         await openFromHandle(params.files[0]);
       } catch (e) {
-        alert("Could not open file: " + e.message);
+        alert(t("openFailed", { msg: e.message }));
       }
     });
   }
