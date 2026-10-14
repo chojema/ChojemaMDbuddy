@@ -1,6 +1,19 @@
 <title>MD·Buddy — Markdown Reader &amp; Editor</title>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f2e9d8" />
+<script>
+  // The app manifest only applies when served over http(s); opened as a local
+  // file (file://) the browser would just log a CORS error for it.
+  if (/^https?:$/.test(location.protocol)) {
+    const manifest = document.createElement("link");
+    manifest.rel = "manifest";
+    manifest.href = "manifest.webmanifest";
+    document.head.appendChild(manifest);
+  }
+</script>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 <style>
   :root {
     --bg: #f2e9d8;
@@ -142,6 +155,7 @@
   .key svg { width: 13px; height: 13px; opacity: 0.85; }
   .key.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .key.primary:hover { color: var(--accent-ink); filter: brightness(1.08); }
+  .key[hidden] { display: none; }
 
   .spacer { flex: 1; }
 
@@ -469,6 +483,11 @@
   </div>
 
   <div class="spacer"></div>
+
+  <button class="key" id="btnInstall" title="Install MD·Buddy as an app" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>
+    <span class="label">Install</span>
+  </button>
 
   <a class="credit" href="https://cantips.com" target="_blank" rel="noopener noreferrer">Chulwoo Park, <span id="creditYear"></span></a>
 
@@ -1275,14 +1294,21 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
 
   const fileTypes = [{ description: "Markdown", accept: { "text/markdown": [".md", ".markdown", ".txt"] } }];
 
+  // Shared by Open, drag-and-drop, and OS file launch (PWA file handling).
+  // Keeping the handle lets Save write straight back to the same file.
+  async function openFromHandle(handle) {
+    const file = await handle.getFile();
+    const text = await file.text();
+    fileHandle = handle;
+    setContent(text, file.name);
+  }
+
   async function doOpen() {
     if (!confirmDiscard()) return;
     if (supportsFS) {
       try {
         const [handle] = await window.showOpenFilePicker({ types: fileTypes });
-        fileHandle = handle;
-        const file = await handle.getFile();
-        setContent(await file.text(), file.name);
+        await openFromHandle(handle);
       } catch (e) {
         if (e && e.name !== "AbortError") alert("Could not open file: " + e.message);
       }
@@ -1394,9 +1420,7 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
       try {
         const handle = await item.getAsFileSystemHandle();
         if (handle.kind === "file") {
-          fileHandle = handle;
-          const file = await handle.getFile();
-          setContent(await file.text(), file.name);
+          await openFromHandle(handle);
           return;
         }
       } catch (err) {
@@ -1482,9 +1506,14 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
   const moonPath = '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/>';
   const sunPath = '<circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>';
 
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
   function applyTheme(mode) {
     document.documentElement.classList.toggle("ink", mode === "ink");
     themeIcon.innerHTML = mode === "ink" ? moonPath : sunPath;
+    // Installed-app title bar follows the in-app theme.
+    const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+    if (themeColorMeta && bg) themeColorMeta.content = bg;
   }
 
   let storedTheme = "paper";
@@ -1501,5 +1530,52 @@ Quadratic formula: **x = (−b ± √(b² − 4ac)) / 2a**
 
   document.getElementById("creditYear").textContent = new Date().getFullYear();
   setContent(WELCOME, "untitled.md");
+
+  /* ---------------- Installable app (PWA) ----------------
+     Everything below is optional: opened as a single file (file://) or in a
+     browser without these APIs, the app works exactly as before. */
+
+  // .md files opened from the OS ("Open with" / double-click) in the installed app.
+  if ("launchQueue" in window) {
+    window.launchQueue.setConsumer(async (params) => {
+      if (!params.files || !params.files.length) return;
+      if (!confirmDiscard()) return;
+      try {
+        await openFromHandle(params.files[0]);
+      } catch (e) {
+        alert("Could not open file: " + e.message);
+      }
+    });
+  }
+
+  // In-page install button, shown only when the browser offers installation.
+  const btnInstall = document.getElementById("btnInstall");
+  let installPrompt = null;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    btnInstall.hidden = false;
+  });
+
+  btnInstall.addEventListener("click", async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    btnInstall.hidden = true;
+  });
+
+  window.addEventListener("appinstalled", () => {
+    installPrompt = null;
+    btnInstall.hidden = true;
+  });
+
+  // Offline support. Service workers only run over http(s), never from file://.
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
 })();
 </script>
