@@ -1,5 +1,6 @@
-<title>MD·Buddy — Markdown Reader &amp; Editor</title>
+<!DOCTYPE html>
 <meta charset="UTF-8" />
+<title>MD·Buddy — Markdown Reader &amp; Editor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f2e9d8" />
 <script>
@@ -402,9 +403,9 @@
     margin: 1.1em 0;
     box-shadow: inset 0 1px 3px var(--shadow-1);
   }
-  #preview .page pre.md-code code { background: none; padding: 0; font-size: 13px; line-height: 1.6; }
-  #preview .page img { max-width: 100%; border-radius: 6px; }
-  #preview .page table.md-table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: 0.95em; }
+  #preview .page pre.md-code code { display: block; background: none; padding: 0; font-size: 13px; line-height: 1.6; }
+  #preview .page img { max-width: 100%; border-radius: 6px; vertical-align: bottom; }
+  #preview .page table.md-table { border-collapse: collapse; width: 100%; margin: 1.2em 0; font-size: 0.95em; line-height: normal; }
   #preview .page table.md-table th, #preview .page table.md-table td {
     border: 1px solid var(--rule); padding: 8px 12px; text-align: left;
   }
@@ -435,6 +436,7 @@
   }
   .statusbar .dot.dirty { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .statusbar > span { white-space: nowrap; }
   .statusbar .grow { flex: 1; }
   .statusbar .filename { color: var(--ink); }
   .statusbar .hint {
@@ -448,15 +450,38 @@
     pointer-events: none;
   }
 
+  .statusbar .social {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 14px;
+    border-left: 1px solid var(--rule);
+  }
+  .statusbar .social a {
+    display: flex;
+    color: var(--ink-faint);
+    border-radius: 3px;
+    transition: color 0.12s ease;
+  }
+  .statusbar .social a:hover { color: var(--accent); }
+  .statusbar .social a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; color: var(--accent); }
+  .statusbar .social svg { width: 13px; height: 13px; fill: currentColor; }
+
   input[type=file] { display: none; }
 
   @media (max-width: 720px) {
     .brand .sub { display: none; }
     .key span.label { display: none; }
     .credit { display: none; }
+    .statusbar { gap: 12px; padding: 6px 12px; }
+    .statusbar #fsSupport { display: none; }
+    .statusbar .social { padding-left: 12px; }
   }
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
     .statusbar .hint { display: none; }
+  }
+  @media (max-width: 400px) {
+    .statusbar #charCount { display: none; }
   }
 </style>
 
@@ -573,6 +598,23 @@ Open a .md file, or just type here."></textarea>
   <span class="hint">Both panes are editable — for the safest results, prefer the manuscript pane.</span>
   <span class="grow"></span>
   <span id="fsSupport"></span>
+  <nav class="social" aria-label="Chulwoo Park online">
+    <a href="https://cantips.com" target="_blank" rel="noopener noreferrer" title="Blog" aria-label="Blog (opens in a new window)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    </a>
+    <a href="https://www.youtube.com/@cantips" target="_blank" rel="noopener noreferrer" title="YouTube" aria-label="YouTube (opens in a new window)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23 1.54-.91 1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3-5.2 3z"/></svg>
+    </a>
+    <a href="https://twitter.com/chojema" target="_blank" rel="noopener noreferrer" title="X" aria-label="X (opens in a new window)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L2.25 2.25h6.921l4.255 5.623 4.818-5.623zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/chojema" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram (opens in a new window)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+    </a>
+    <a href="https://github.com/chojema" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub (opens in a new window)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+    </a>
+  </nav>
 </div>
 
 <input type="file" id="fileInput" accept=".md,.markdown,.txt,text/markdown,text/plain" />
