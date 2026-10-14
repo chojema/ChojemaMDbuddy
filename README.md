@@ -33,14 +33,21 @@ Safari's *File → Add to Dock* also works, but Safari cannot save back to the o
 
 ## Features
 
-- **Split-pane layout** — the manuscript (source) pane is always on the left, the rendered pane is always on the right.
+- **Split-pane layout** — the manuscript (source) pane is on the left, the rendered pane on the right. **Reading mode** (book button) temporarily shows the rendered pane alone.
 - **Both panes are editable** — type Markdown on the left, or edit the rendered text directly on the right (insert/delete text, formatting is preserved). The two panes stay in sync in both directions.
 - **Editing toolbar** — format the selection in the last active pane: bold, italic, strikethrough, headings, lists, blockquotes, links, and inline code. **More** inserts a starter table, an image from a URL, or a code block. The toolbar shows which pane will receive the edit; hover over a button for its name and available shortcut.
 - **Shared undo and redo** — typing and toolbar edits in either pane share a history of up to 100 document states. Opening or creating a document resets this history; it lives only in the current tab.
-- **Live rendering** — the right pane updates as you type, powered by a small hand-written Markdown parser (headings, bold/italic/strikethrough, inline code, fenced code blocks, blockquotes, ordered/unordered lists with one level of nesting, tables, links, images, and backslash-escapes).
+- **Live rendering** — the right pane updates as you type, powered by a small hand-written Markdown parser: headings, bold/italic/strikethrough, inline code, fenced code blocks with light syntax colouring (JavaScript/TypeScript/JSON, Python, shell/YAML, SQL, HTML/XML, and C-family languages), blockquotes, nested ordered/unordered lists, **task lists** (`- [ ]` / `- [x]`, clickable in the rendered pane), tables, links, images, bare-URL autolinks, reference-style links (`[text][id]`), **footnotes** (`[^1]`), YAML **front matter** (shown as a quiet metadata box), and backslash-escapes. Links with `javascript:` and similar URLs are never made clickable.
+- **Smart source editing** — `Enter` continues a list, numbered list, task list, or quote (and ends it on an empty item); `Tab` / `Shift+Tab` indent or outdent the selected lines or the current list item. Press `Esc` then `Tab` to move keyboard focus out of the editor.
+- **Find and replace** — `Ctrl+F` / `Ctrl+H` (or the magnifier button) searches the manuscript, with match count, match case, *Replace*, and *Replace all*.
+- **Outline** — the outline button lists every heading; pick one to jump there in both panes.
+- **Scroll sync** — the two panes follow each other as you scroll (toggle with the ⇅ button; the choice is remembered).
+- **Export** — save the rendered document as a standalone HTML page, copy it as formatted text for mail, blogs, or word processors, or print it / save it as PDF (printing shows the rendered document only, on white paper).
 - **Open / New / Save / Save As** — uses the browser's native File System Access API when available, so Save writes straight back to the file you opened. Falls back to a plain file picker + download in browsers without that API.
+- **Files stay intact** — line endings (CRLF or LF), a UTF-8 BOM, and a final newline are kept exactly as they were. Legacy Korean (EUC-KR/CP949) and UTF-16 files open correctly; MD·Buddy saves as UTF-8 and asks before converting. The status bar shows the current encoding and line endings.
 - **Drag and drop** — drop a `.md` file anywhere on the window to open it.
 - **Installable** — runs as its own app window with offline support and `.md` file association (see *Ways to use*).
+- **English or Korean interface** — English by default; the **한 / EN** button in the top-right corner switches every menu, tooltip, message, and the welcome document to Korean (한국어) and back. The choice is remembered.
 - **Light and dark themes** — toggle in the top-right corner; the choice is remembered.
 - **Resizable split** — drag the divider between the two panes to adjust the widths.
 - Word count, character count, and an unsaved-changes indicator in the status bar.
@@ -60,11 +67,19 @@ Shortcuts are shown with `Ctrl`; on macOS use `Cmd`.
 | Headings, lists, or blockquotes | Select text or place the caret in a line, then use the toolbar |
 | Insert a link | Link button or `Ctrl+K`; enter the text and an HTTP, HTTPS, or mailto URL |
 | Insert a table, image, or code block | **More** menu; images require an HTTP or HTTPS URL |
+| Task list | Task list button, or type `- [ ] `; click a box in the rendered pane to tick it |
+| Continue / end a list | `Enter` / `Enter` on an empty item |
+| Indent / outdent lines | `Tab` / `Shift+Tab` (`Esc`, then `Tab` leaves the editor) |
+| Find / replace | `Ctrl+F` / `Ctrl+H`; `Enter` next, `Shift+Enter` previous, `F3` next, `Esc` close |
+| Jump to a heading | Outline button |
+| Reading mode / scroll sync | Book button / ⇅ button |
+| Export HTML, copy formatted, print or PDF | **Export** menu (or `Ctrl+P` to print) |
+| Switch language (English / 한국어) | **한** / **EN** button, top-right |
 | Switch theme | Sun/moon button, top-right |
 
 **Nothing is saved automatically** — in every way of using it. Edits only live in the browser tab (or app window) until you explicitly click **Save** (or **Save As**) — closing the tab, reloading, or navigating away without saving will lose your changes. The status bar's dot next to the filename turns solid/pulsing when there are unsaved changes, as a reminder to save.
 
-Both panes support text editing and the toolbar. For complex Markdown, editing the source on the left is more reliable: the rendered pane uses the app's limited HTML-to-Markdown serializer and can normalize spacing or syntax when applying an edit.
+Both panes support text editing and the toolbar. For complex Markdown, editing the source on the left is more reliable: the rendered pane uses the app's limited HTML-to-Markdown serializer and can normalize spacing or syntax when applying an edit. Front matter, link definitions, and footnote definitions are always written back exactly as typed.
 
 ## Browser support
 
